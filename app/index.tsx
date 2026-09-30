@@ -27,16 +27,16 @@ export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.stampBorder}>
-        <Text style={styles.tag}>OFFICIAL INSPECTION CHECKPOINT</Text>
+        <Text style={styles.tag}>ระบบยืนยันการเข้าเรียน</Text>
       </View>
 
       <Text style={styles.title}>PRESENT, PLEASE.</Text>
-      <Text style={styles.tagline}>Verify your presence.</Text>
+      <Text style={styles.tagline}>ระบบเช็กชื่อและยืนยันการเข้าชั้นเรียน</Text>
 
       <View style={styles.divider} />
 
       <ActivityIndicator size="small" color={Colors.inkDark} style={{ marginTop: 24 }} />
-      <Text style={styles.statusText}>VERIFYING CREDENTIALS...</Text>
+      <Text style={styles.statusText}>กำลังตรวจสอบข้อมูลผู้ใช้งาน...</Text>
     </View>
   );
 }

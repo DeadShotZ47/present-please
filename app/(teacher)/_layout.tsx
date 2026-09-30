@@ -37,8 +37,8 @@ export default function TeacherLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'COMMAND DASHBOARD',
-          tabBarLabel: 'Dashboard',
+          title: 'แดชบอร์ดอาจารย์',
+          tabBarLabel: 'แดชบอร์ด',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="grid-outline" size={size - 2} color={color} />
           ),
@@ -47,8 +47,8 @@ export default function TeacherLayout() {
       <Tabs.Screen
         name="sessions"
         options={{
-          title: 'SESSION REGISTRY',
-          tabBarLabel: 'Sessions',
+          title: 'คาบเรียนทั้งหมด',
+          tabBarLabel: 'คาบเรียน',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="list-outline" size={size - 2} color={color} />
           ),
@@ -57,8 +57,8 @@ export default function TeacherLayout() {
       <Tabs.Screen
         name="create-session"
         options={{
-          title: 'OPEN CHECKPOINT',
-          tabBarLabel: 'New Session',
+          title: 'เปิดคาบเช็กชื่อ',
+          tabBarLabel: 'เปิดคาบใหม่',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="add-circle-outline" size={size - 2} color={color} />
           ),
@@ -67,8 +67,8 @@ export default function TeacherLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'FACULTY IDENTITY',
-          tabBarLabel: 'Profile',
+          title: 'ข้อมูลอาจารย์',
+          tabBarLabel: 'โปรไฟล์',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size - 2} color={color} />
           ),
@@ -79,7 +79,7 @@ export default function TeacherLayout() {
         name="attendance/[sessionId]"
         options={{
           href: null,
-          title: 'SESSION ATTENDANCE ROSTER',
+          title: 'รายชื่อนักศึกษาในคาบ',
         }}
       />
     </Tabs>

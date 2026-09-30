@@ -11,7 +11,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.tag}>NOTICE</Text>
+      <Text style={styles.tag}>แจ้งเตือน</Text>
       <Text style={styles.text}>{message}</Text>
     </View>
   );

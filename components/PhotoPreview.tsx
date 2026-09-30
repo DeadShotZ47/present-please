@@ -17,15 +17,15 @@ export const PhotoPreview: React.FC<PhotoPreviewProps> = ({
   if (!photoUri) {
     return (
       <View style={styles.card}>
-        <Text style={styles.title}>STEP 2: PHOTO EVIDENCE</Text>
+        <Text style={styles.title}>ขั้นตอนที่ 2: ถ่ายภาพยืนยันตัวตน</Text>
         <Text style={styles.description}>
-          A real-time photograph is required to verify physical presence at this checkpoint.
+          กรุณาถ่ายภาพปัจจุบันของคุณในห้องเรียนเพื่อใช้ยืนยันการเข้าเรียน
         </Text>
         <View style={styles.placeholderBox}>
-          <Text style={styles.placeholderText}>NO PHOTO CAPTURED</Text>
+          <Text style={styles.placeholderText}>ยังไม่มีรูปถ่าย</Text>
         </View>
         <PrimaryButton
-          title="TAKE PHOTO"
+          title="ถ่ายรูปยืนยันตัวตน"
           variant="primary"
           onPress={onTakePhoto}
           style={{ marginTop: 12 }}
@@ -37,23 +37,23 @@ export const PhotoPreview: React.FC<PhotoPreviewProps> = ({
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>STEP 2: PHOTO EVIDENCE</Text>
-        <Text style={styles.readyText}>✓ ATTACHED</Text>
+        <Text style={styles.title}>ขั้นตอนที่ 2: ถ่ายภาพยืนยันตัวตน</Text>
+        <Text style={styles.readyText}>✓ แนบรูปแล้ว</Text>
       </View>
 
       <View style={styles.imageContainer}>
         <Image source={{ uri: photoUri }} style={styles.photo} resizeMode="cover" />
         <View style={styles.evidenceOverlay}>
-          <Text style={styles.overlayText}>VERIFICATION EVIDENCE</Text>
+          <Text style={styles.overlayText}>ภาพหลักฐานการเข้าเรียน</Text>
         </View>
       </View>
 
       <PrimaryButton
-        title="RETAKE PHOTO"
+        title="ถ่ายรูปใหม่"
         variant="outline"
         onPress={onRetakePhoto}
         style={{ marginTop: 12, height: 38 }}
-        textStyle={{ fontSize: 11 }}
+        textStyle={{ fontSize: 12 }}
       />
     </View>
   );

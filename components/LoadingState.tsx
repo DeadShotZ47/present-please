@@ -7,13 +7,13 @@ interface LoadingStateProps {
 }
 
 export const LoadingState: React.FC<LoadingStateProps> = ({
-  message = 'VERIFYING CREDENTIALS...',
+  message = 'กำลังโหลดข้อมูล...',
 }) => {
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" color={Colors.inkDark} />
       <Text style={styles.text}>{message}</Text>
-      <Text style={styles.subText}>Checkpoint operational status: standby</Text>
+      <Text style={styles.subText}>กรุณารอสักครู่</Text>
     </View>
   );
 };

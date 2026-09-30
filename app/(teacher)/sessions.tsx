@@ -40,7 +40,7 @@ export default function TeacherSessionsScreen() {
   );
 
   if (loading && !refreshing) {
-    return <LoadingState message="ACCESSING SESSION REGISTRY..." />;
+    return <LoadingState message="กำลังโหลดรายการคาบเรียน..." />;
   }
 
   return (
@@ -50,14 +50,14 @@ export default function TeacherSessionsScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadSessions(); }} />}
     >
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>REGISTRY OF ATTENDANCE CHECKPOINTS</Text>
-        <Text style={styles.subtext}>Master archive of created verification perimeters</Text>
+        <Text style={styles.headerTitle}>รายการคาบเรียนทั้งหมด</Text>
+        <Text style={styles.subtext}>ประวัติคาบเรียนและรัศมีพิกัดที่กำหนดไว้</Text>
       </View>
 
       {sessions.length === 0 ? (
         <EmptyState
-          title="NO SESSIONS REGISTERED"
-          message="No attendance sessions recorded."
+          title="ยังไม่มีคาบเรียนที่บันทึกไว้"
+          message="ไม่พบคลาสเรียนในระบบ"
         />
       ) : (
         sessions.map((session) => (
@@ -86,12 +86,12 @@ export default function TeacherSessionsScreen() {
               <Text style={styles.detailText}>
                 {session.date} • {session.startTime} - {session.endTime}
               </Text>
-              <Text style={styles.roomText}>{session.room || 'Room 301'}</Text>
+              <Text style={styles.roomText}>{session.room || 'ห้อง 301'}</Text>
             </View>
 
             <View style={styles.perimeterRow}>
               <Text style={styles.perimeterLabel}>
-                PERIMETER: ({session.latitude.toFixed(4)}, {session.longitude.toFixed(4)}) • RADIUS: {session.allowedRadius}m
+                พิกัดห้อง: ({session.latitude.toFixed(4)}, {session.longitude.toFixed(4)}) • รัศมี: {session.allowedRadius} เมตร
               </Text>
             </View>
           </TouchableOpacity>

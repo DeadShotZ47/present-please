@@ -82,7 +82,7 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
         <>
           {icon}
           <Text style={[styles.baseText, getTextStyle(), textStyle]}>
-            {title.toUpperCase()}
+            {title}
           </Text>
         </>
       )}
@@ -105,8 +105,7 @@ const styles = StyleSheet.create({
   },
   baseText: {
     fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 1.2,
+    fontWeight: '700',
   },
   primary: {
     backgroundColor: Colors.inkDark,

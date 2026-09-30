@@ -37,8 +37,8 @@ export default function StudentLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'CHECKPOINT',
-          tabBarLabel: 'Home',
+          title: 'หน้าหลัก',
+          tabBarLabel: 'หน้าหลัก',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size - 2} color={color} />
           ),
@@ -47,8 +47,8 @@ export default function StudentLayout() {
       <Tabs.Screen
         name="classes"
         options={{
-          title: 'MY COURSES',
-          tabBarLabel: 'Classes',
+          title: 'วิชาเรียน',
+          tabBarLabel: 'วิชาเรียน',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="book-outline" size={size - 2} color={color} />
           ),
@@ -57,8 +57,8 @@ export default function StudentLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: 'VERIFICATION LOG',
-          tabBarLabel: 'History',
+          title: 'ประวัติการเข้าเรียน',
+          tabBarLabel: 'ประวัติ',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size - 2} color={color} />
           ),
@@ -67,8 +67,8 @@ export default function StudentLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'IDENTITY CARD',
-          tabBarLabel: 'Profile',
+          title: 'ข้อมูลส่วนตัว',
+          tabBarLabel: 'โปรไฟล์',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size - 2} color={color} />
           ),
@@ -79,14 +79,14 @@ export default function StudentLayout() {
         name="attendance/[sessionId]"
         options={{
           href: null,
-          title: 'ATTENDANCE VERIFICATION',
+          title: 'เช็กชื่อเข้าเรียน',
         }}
       />
       <Tabs.Screen
         name="attendance-detail/[attendanceId]"
         options={{
           href: null,
-          title: 'INSPECTION RECORD',
+          title: 'รายละเอียดการเช็กชื่อ',
         }}
       />
     </Tabs>

@@ -53,7 +53,7 @@ export default function StudentHomeScreen() {
   };
 
   if (loading && !refreshing) {
-    return <LoadingState message="ACCESSING TODAY'S CHECKPOINTS..." />;
+    return <LoadingState message="กำลังโหลดตารางเรียนวันนี้..." />;
   }
 
   const checkedSessionIds = new Set(attendances.map((a) => a.sessionId));
@@ -67,28 +67,28 @@ export default function StudentHomeScreen() {
       {/* Official Identification Banner */}
       <View style={styles.idCard}>
         <View style={styles.idHeader}>
-          <Text style={styles.idHeaderTag}>VERIFIED STUDENT CREDENTIAL</Text>
+          <Text style={styles.idHeaderTag}>บัตรประจำตัวนักศึกษา</Text>
           <Text style={styles.idNumber}>{user?.studentId || '6501234567'}</Text>
         </View>
-        <Text style={styles.greeting}>Good day, {user?.name}.</Text>
+        <Text style={styles.greeting}>สวัสดี, {user?.name}</Text>
         <Text style={styles.subtext}>
-          Ensure physical presence within designated room perimeter before initiating verification.
+          กรุณาอยู่ในพื้นที่ห้องเรียนก่อนเริ่มขั้นตอนการเช็กชื่อเข้าเรียน
         </Text>
       </View>
 
       {/* Section Title */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>TODAY'S SCHEDULED SESSIONS</Text>
+        <Text style={styles.sectionTitle}>คาบเรียนวันนี้</Text>
         <Text style={styles.sessionCount}>
-          {sessions.length} {sessions.length === 1 ? 'SESSION' : 'SESSIONS'}
+          {sessions.length} คาบ
         </Text>
       </View>
 
       {sessions.length === 0 ? (
         <EmptyState
-          title="NO SESSIONS SCHEDULED"
-          message="No active class checkpoints are currently scheduled for today."
-          actionTitle="REFRESH LIST"
+          title="ไม่มีคาบเรียนในวันนี้"
+          message="วันนี้ไม่มีตารางเรียนหรือคาบเช็กชื่อที่เปิดอยู่"
+          actionTitle="รีเฟรชข้อมูล"
           onAction={loadData}
         />
       ) : (
@@ -112,10 +112,10 @@ export default function StudentHomeScreen() {
 
       {/* Rules Information Box */}
       <View style={styles.protocolBox}>
-        <Text style={styles.protocolTitle}>INSPECTION PROTOCOL MANDATE</Text>
-        <Text style={styles.protocolItem}>• Proof of Presence requires valid GPS coordinates within classroom radius.</Text>
-        <Text style={styles.protocolItem}>• Real-time photo evidence must show clear presence in lecture room.</Text>
-        <Text style={styles.protocolItem}>• Duplicate check-ins for identical sessions will be rejected by backend.</Text>
+        <Text style={styles.protocolTitle}>คำแนะนำและเงื่อนไขการเช็กชื่อ</Text>
+        <Text style={styles.protocolItem}>• ต้องเปิด GPS และมีพิกัดอยู่ในรัศมีห้องเรียนที่อาจารย์กำหนด</Text>
+        <Text style={styles.protocolItem}>• ถ่ายภาพใบหน้าหรือบรรยากาศในห้องเรียนจริงเพื่อยืนยันตัวตน</Text>
+        <Text style={styles.protocolItem}>• ระบบไม่อนุญาตให้เช็กชื่อซ้ำในคาบเรียนเดียวกัน</Text>
       </View>
     </ScrollView>
   );

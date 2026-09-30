@@ -39,14 +39,14 @@ export default function AttendanceDetailScreen() {
   };
 
   if (loading) {
-    return <LoadingState message="RETRIEVING DOSSIER ENTRY..." />;
+    return <LoadingState message="กำลังโหลดรายละเอียดการเช็กชื่อ..." />;
   }
 
   if (!record) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorTitle}>RECORD NOT FOUND</Text>
-        <PrimaryButton title="RETURN" onPress={() => router.back()} />
+        <Text style={styles.errorTitle}>ไม่พบข้อมูลการเช็กชื่อ</Text>
+        <PrimaryButton title="ย้อนกลับ" onPress={() => router.back()} />
       </View>
     );
   }
@@ -56,12 +56,12 @@ export default function AttendanceDetailScreen() {
       <View style={styles.dossierCard}>
         {/* Header Tag */}
         <View style={styles.headerRow}>
-          <Text style={styles.tag}>OFFICIAL ATTENDANCE ENTRY</Text>
-          <Text style={styles.recordId}>REF: #{record.id.slice(-6).toUpperCase()}</Text>
+          <Text style={styles.tag}>รายละเอียดการเข้าเรียน</Text>
+          <Text style={styles.recordId}>รหัสอ้างอิง: #{record.id.slice(-6).toUpperCase()}</Text>
         </View>
 
-        <Text style={styles.courseTitle}>{record.courseName || 'Class Session'}</Text>
-        <Text style={styles.sessionCode}>{record.courseCode} • {record.room || 'Room 301'}</Text>
+        <Text style={styles.courseTitle}>{record.courseName || 'คาบเรียน'}</Text>
+        <Text style={styles.sessionCode}>{record.courseCode} • {record.room || 'ห้อง 301'}</Text>
 
         <View style={styles.badgeRow}>
           <StatusBadge status={record.status} size="medium" />
@@ -72,30 +72,30 @@ export default function AttendanceDetailScreen() {
         {/* Verification Metadata Grid */}
         <View style={styles.fieldGrid}>
           <View style={styles.field}>
-            <Text style={styles.label}>DATE</Text>
+            <Text style={styles.label}>วันที่</Text>
             <Text style={styles.value}>{formatDate(record.timestamp)}</Text>
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>EXACT TIME STAMP</Text>
+            <Text style={styles.label}>เวลาที่บันทึก</Text>
             <Text style={styles.value}>{formatTimeWithSeconds(record.timestamp)}</Text>
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>DISTANCE FROM ROOM</Text>
-            <Text style={styles.value}>{record.distanceFromClassroom} meters</Text>
+            <Text style={styles.label}>ระยะห่างจากห้องเรียน</Text>
+            <Text style={styles.value}>{record.distanceFromClassroom} เมตร</Text>
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>GPS SATELLITE ACCURACY</Text>
-            <Text style={styles.value}>±{record.gpsAccuracy} meters</Text>
+            <Text style={styles.label}>ความแม่นยำ GPS</Text>
+            <Text style={styles.value}>±{record.gpsAccuracy} เมตร</Text>
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>COORDINATES</Text>
+            <Text style={styles.label}>พิกัดตำแหน่ง</Text>
             <Text style={styles.value}>
               {record.latitude.toFixed(5)}, {record.longitude.toFixed(5)}
             </Text>
           </View>
           {record.verificationNotes && (
             <View style={styles.fieldFull}>
-              <Text style={styles.label}>INSPECTION NOTES</Text>
+              <Text style={styles.label}>หมายเหตุการตรวจสอบ</Text>
               <Text style={styles.noteText}>{record.verificationNotes}</Text>
             </View>
           )}
@@ -103,20 +103,20 @@ export default function AttendanceDetailScreen() {
 
         {/* Photo Evidence Section */}
         <View style={styles.photoSection}>
-          <Text style={styles.photoLabel}>PHYSICAL EVIDENCE PHOTOGRAPH:</Text>
+          <Text style={styles.photoLabel}>ภาพถ่ายหลักฐานการเข้าเรียน:</Text>
           {record.photoUrl ? (
             <View style={styles.imageFrame}>
               <Image source={{ uri: record.photoUrl }} style={styles.photo} resizeMode="cover" />
             </View>
           ) : (
             <View style={styles.noPhotoBox}>
-              <Text style={styles.noPhotoText}>NO PHOTOGRAPHIC EVIDENCE RECORDED</Text>
+              <Text style={styles.noPhotoText}>ไม่มีภาพถ่ายหลักฐาน</Text>
             </View>
           )}
         </View>
 
         <PrimaryButton
-          title="RETURN TO LOG"
+          title="กลับไปยังหน้ารายการ"
           variant="secondary"
           onPress={() => router.back()}
           style={{ marginTop: 20 }}

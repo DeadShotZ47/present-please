@@ -62,10 +62,10 @@ export default function CreateSessionScreen() {
         setLatitude(pos.latitude.toFixed(6));
         setLongitude(pos.longitude.toFixed(6));
       } else {
-        setError('Unable to acquire current GPS coordinates.');
+        setError('ไม่สามารถดึงพิกัดตำแหน่งปัจจุบันได้');
       }
     } catch (err: any) {
-      setError(err?.message || 'GPS retrieval error.');
+      setError(err?.message || 'เกิดข้อผิดพลาดในการดึงพิกัด');
     } finally {
       setFetchingGps(false);
     }
@@ -74,7 +74,7 @@ export default function CreateSessionScreen() {
   const handleCreate = async () => {
     setError(null);
     if (!selectedCourse) {
-      setError('Please select a course for this session.');
+      setError('กรุณาเลือกวิชาที่ต้องการเปิดเช็กชื่อ');
       return;
     }
     const latNum = parseFloat(latitude);
@@ -82,11 +82,11 @@ export default function CreateSessionScreen() {
     const radiusNum = parseInt(allowedRadius, 10);
 
     if (isNaN(latNum) || isNaN(lonNum)) {
-      setError('Classroom coordinates must be valid numbers.');
+      setError('พิกัดละติจูดและลองจิจูดต้องเป็นตัวเลขที่ถูกต้อง');
       return;
     }
     if (isNaN(radiusNum) || radiusNum <= 0) {
-      setError('Allowed radius must be greater than 0 meters.');
+      setError('รัศมีที่อนุญาตต้องมากกว่า 0 เมตร');
       return;
     }
 
@@ -96,7 +96,7 @@ export default function CreateSessionScreen() {
         courseId: selectedCourse.id,
         courseName: selectedCourse.name,
         courseCode: selectedCourse.code,
-        room: room.trim() || 'Room 301',
+        room: room.trim() || 'ห้อง 301',
         date,
         startTime,
         endTime,
@@ -107,17 +107,17 @@ export default function CreateSessionScreen() {
       });
 
       Alert.alert(
-        'Checkpoint Activated',
-        `Attendance checkpoint for "${selectedCourse.name}" is now OPEN.`,
+        'เปิดคาบเช็กชื่อสำเร็จ',
+        `เปิดรับการเช็กชื่อสำหรับวิชา "${selectedCourse.name}" เรียบร้อยแล้ว`,
         [
           {
-            text: 'OK',
+            text: 'ตกลง',
             onPress: () => router.replace('/(teacher)/home'),
           },
         ]
       );
     } catch (err: any) {
-      setError(err?.message || 'Failed to establish checkpoint.');
+      setError(err?.message || 'ไม่สามารถเปิดคาบเช็กชื่อได้');
     } finally {
       setSubmitting(false);
     }
@@ -126,14 +126,14 @@ export default function CreateSessionScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
-        <Text style={styles.cardHeader}>ESTABLISH ATTENDANCE CHECKPOINT</Text>
-        <Text style={styles.cardSub}>Declare classroom geofence and operational window</Text>
+        <Text style={styles.cardHeader}>สร้างคาบเช็กชื่อใหม่</Text>
+        <Text style={styles.cardSub}>กำหนดวัน เวลา ห้องเรียน และพิกัดรัศมีสำหรับเช็กชื่อ</Text>
         <View style={styles.headerDivider} />
 
         <ErrorMessage message={error || ''} />
 
         {/* Course Selection */}
-        <Text style={styles.label}>ASSIGNED COURSE</Text>
+        <Text style={styles.label}>เลือกรายวิชา</Text>
         <View style={styles.courseList}>
           {courses.map((c) => (
             <TouchableOpacity
@@ -162,7 +162,7 @@ export default function CreateSessionScreen() {
         {/* Date and Times */}
         <View style={styles.row}>
           <View style={[styles.inputGroup, { flex: 1 }]}>
-            <Text style={styles.label}>DATE (YYYY-MM-DD)</Text>
+            <Text style={styles.label}>วันที่ (ปปปป-ดด-วว)</Text>
             <TextInput
               style={styles.input}
               value={date}
@@ -171,19 +171,19 @@ export default function CreateSessionScreen() {
             />
           </View>
           <View style={[styles.inputGroup, { flex: 1 }]}>
-            <Text style={styles.label}>ROOM DESIGNATION</Text>
+            <Text style={styles.label}>ห้องเรียน</Text>
             <TextInput
               style={styles.input}
               value={room}
               onChangeText={setRoom}
-              placeholder="Room 301"
+              placeholder="ห้อง 301"
             />
           </View>
         </View>
 
         <View style={styles.row}>
           <View style={[styles.inputGroup, { flex: 1 }]}>
-            <Text style={styles.label}>START TIME</Text>
+            <Text style={styles.label}>เวลาเริ่มเรียน</Text>
             <TextInput
               style={styles.input}
               value={startTime}
@@ -192,7 +192,7 @@ export default function CreateSessionScreen() {
             />
           </View>
           <View style={[styles.inputGroup, { flex: 1 }]}>
-            <Text style={styles.label}>END TIME</Text>
+            <Text style={styles.label}>เวลาเลิกเรียน</Text>
             <TextInput
               style={styles.input}
               value={endTime}
@@ -205,7 +205,7 @@ export default function CreateSessionScreen() {
         {/* GPS Coordinates Section */}
         <View style={styles.geoBox}>
           <View style={styles.geoHeader}>
-            <Text style={styles.geoTitle}>CLASSROOM GPS PERIMETER</Text>
+            <Text style={styles.geoTitle}>กำหนดพิกัดตำแหน่งห้องเรียน (GPS)</Text>
             <TouchableOpacity
               style={styles.gpsButton}
               onPress={handleUseCurrentLocation}
@@ -214,14 +214,14 @@ export default function CreateSessionScreen() {
               {fetchingGps ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.gpsButtonText}>📍 USE CURRENT LOCATION</Text>
+                <Text style={styles.gpsButtonText}>📍 ใช้พิกัดปัจจุบัน</Text>
               )}
             </TouchableOpacity>
           </View>
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>LATITUDE</Text>
+              <Text style={styles.label}>ละติจูด (Latitude)</Text>
               <TextInput
                 style={styles.input}
                 value={latitude}
@@ -230,7 +230,7 @@ export default function CreateSessionScreen() {
               />
             </View>
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>LONGITUDE</Text>
+              <Text style={styles.label}>ลองจิจูด (Longitude)</Text>
               <TextInput
                 style={styles.input}
                 value={longitude}
@@ -241,7 +241,7 @@ export default function CreateSessionScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>ALLOWED VERIFICATION RADIUS (METERS)</Text>
+            <Text style={styles.label}>รัศมีที่อนุญาตให้นักศึกษาเช็กชื่อ (เมตร)</Text>
             <TextInput
               style={styles.input}
               value={allowedRadius}
@@ -253,7 +253,7 @@ export default function CreateSessionScreen() {
         </View>
 
         <PrimaryButton
-          title="ACTIVATE CHECKPOINT SESSION"
+          title="บันทึกและเปิดรับเช็กชื่อ"
           variant="primary"
           loading={submitting}
           onPress={handleCreate}

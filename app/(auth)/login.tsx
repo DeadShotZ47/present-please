@@ -28,11 +28,11 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     setError(null);
     if (!identifier.trim()) {
-      setError('Please provide Email or Student ID.');
+      setError('กรุณากรอกอีเมลหรือรหัสนักศึกษา');
       return;
     }
     if (!password) {
-      setError('Please enter your password.');
+      setError('กรุณากรอกรหัสผ่าน');
       return;
     }
 
@@ -45,7 +45,7 @@ export default function LoginScreen() {
         router.replace('/(student)/home');
       }
     } catch (err: any) {
-      setError(err?.message || 'Access Denied. Invalid credentials.');
+      setError(err?.message || 'เข้าสู่ระบบไม่สำเร็จ ข้อมูลไม่ถูกต้อง');
     } finally {
       setLoading(false);
     }
@@ -71,24 +71,24 @@ export default function LoginScreen() {
         {/* Header Document Section */}
         <View style={styles.header}>
           <View style={styles.stampBadge}>
-            <Text style={styles.stampText}>BORDER INSPECTION PROTOCOL</Text>
+            <Text style={styles.stampText}>ระบบยืนยันการเข้าเรียน</Text>
           </View>
           <Text style={styles.title}>PRESENT, PLEASE.</Text>
-          <Text style={styles.subtitle}>Ministry of Attendance & Verification</Text>
+          <Text style={styles.subtitle}>ระบบตรวจสอบและบันทึกการเข้าเรียน</Text>
         </View>
 
         {/* Main Inspection Form Card */}
         <View style={styles.card}>
-          <Text style={styles.cardHeader}>STUDENT / FACULTY LOGIN</Text>
+          <Text style={styles.cardHeader}>เข้าสู่ระบบ (นักศึกษา / อาจารย์)</Text>
           <View style={styles.headerDivider} />
 
           <ErrorMessage message={error || ''} />
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>EMAIL / STUDENT ID</Text>
+            <Text style={styles.label}>อีเมล หรือ รหัสนักศึกษา</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. 6501234567 or email"
+              placeholder="เช่น 6501234567 หรืออีเมล"
               placeholderTextColor={Colors.inkFaint}
               value={identifier}
               onChangeText={setIdentifier}
@@ -99,9 +99,9 @@ export default function LoginScreen() {
 
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
-              <Text style={styles.label}>PASSWORD</Text>
+              <Text style={styles.label}>รหัสผ่าน</Text>
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text style={styles.showHideText}>{showPassword ? 'HIDE' : 'SHOW'}</Text>
+                <Text style={styles.showHideText}>{showPassword ? 'ซ่อน' : 'แสดง'}</Text>
               </TouchableOpacity>
             </View>
             <TextInput
@@ -116,7 +116,7 @@ export default function LoginScreen() {
           </View>
 
           <PrimaryButton
-            title="LOGIN TO CHECKPOINT"
+            title="เข้าสู่ระบบ"
             variant="primary"
             loading={loading}
             onPress={handleLogin}
@@ -124,19 +124,19 @@ export default function LoginScreen() {
           />
 
           <View style={styles.demoSection}>
-            <Text style={styles.demoTitle}>QUICK INSPECTION DEMO PROFILES:</Text>
+            <Text style={styles.demoTitle}>บัญชีทดสอบด่วน:</Text>
             <View style={styles.demoRow}>
               <TouchableOpacity
                 style={styles.demoChip}
                 onPress={() => fillDemo('student')}
               >
-                <Text style={styles.demoChipText}>FILL STUDENT</Text>
+                <Text style={styles.demoChipText}>นักศึกษา (Demo)</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.demoChip}
                 onPress={() => fillDemo('teacher')}
               >
-                <Text style={styles.demoChipText}>FILL TEACHER</Text>
+                <Text style={styles.demoChipText}>อาจารย์ (Demo)</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -144,9 +144,9 @@ export default function LoginScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an issued credential?</Text>
+          <Text style={styles.footerText}>ยังไม่มีบัญชีผู้ใช้งานใช่หรือไม่?</Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-            <Text style={styles.registerLink}>REGISTER IDENTIFICATION →</Text>
+            <Text style={styles.registerLink}>ลงทะเบียนผู้ใช้ใหม่ →</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

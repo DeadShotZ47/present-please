@@ -66,7 +66,7 @@ export default function AttendanceFlowScreen() {
     try {
       const pos = await LocationService.getCurrentPosition();
       if (!pos) {
-        setGpsError('Unable to access device GPS coordinates.');
+        setGpsError('ไม่สามารถเข้าถึงพิกัด GPS ของอุปกรณ์ได้');
         setGpsVerified(false);
         return;
       }
@@ -87,11 +87,11 @@ export default function AttendanceFlowScreen() {
 
       if (!check.isWithinRadius) {
         setGpsError(
-          `You are approximately ${check.distance}m away. Must be within ${session.allowedRadius}m of ${session.room || 'the classroom'}.`
+          `คุณอยู่ห่างจากห้องเรียน ${check.distance} เมตร (ต้องอยู่ในระยะไม่เกิน ${session.allowedRadius} เมตรจาก ${session.room || 'ห้องเรียน'})`
         );
       }
     } catch (err: any) {
-      setGpsError(err?.message || 'Error calculating position.');
+      setGpsError(err?.message || 'เกิดข้อผิดพลาดในการตรวจสอบพิกัด');
       setGpsVerified(false);
     } finally {
       setGpsLoading(false);
@@ -110,12 +110,12 @@ export default function AttendanceFlowScreen() {
     setSubmitError(null);
 
     if (!gpsVerified || !gpsCoords) {
-      setSubmitError('Location verification must pass before submission.');
+      setSubmitError('กรุณาตรวจสอบตำแหน่งให้อยู่ในห้องเรียนก่อนส่งข้อมูล');
       return;
     }
 
     if (!photoUri) {
-      setSubmitError('Photo evidence is required to confirm presence.');
+      setSubmitError('กรุณาถ่ายภาพถ่ายยืนยันตัวตนก่อนส่งข้อมูล');
       return;
     }
 
@@ -131,21 +131,21 @@ export default function AttendanceFlowScreen() {
 
       setVerifiedRecord(record);
     } catch (err: any) {
-      setSubmitError(err?.message || 'Submission rejected by checkpoint authority.');
+      setSubmitError(err?.message || 'การส่งข้อมูลเช็กชื่อไม่สำเร็จ');
     } finally {
       setSubmitting(false);
     }
   };
 
   if (loadingSession) {
-    return <LoadingState message="INITIALIZING CHECKPOINT SESSION..." />;
+    return <LoadingState message="กำลังเปิดหน้าระบบเช็กชื่อ..." />;
   }
 
   if (!session) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorTitle}>SESSION NOT FOUND</Text>
-        <PrimaryButton title="RETURN" onPress={() => router.back()} />
+        <Text style={styles.errorTitle}>ไม่พบคาบเรียนนี้</Text>
+        <PrimaryButton title="ย้อนกลับ" onPress={() => router.back()} />
       </View>
     );
   }
@@ -156,49 +156,49 @@ export default function AttendanceFlowScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.successCard}>
           <View style={styles.stampGranted}>
-            <Text style={styles.stampGrantedText}>ACCESS GRANTED</Text>
+            <Text style={styles.stampGrantedText}>บันทึกสำเร็จ</Text>
           </View>
 
-          <Text style={styles.successHeading}>✓ ATTENDANCE VERIFIED</Text>
+          <Text style={styles.successHeading}>✓ เช็กชื่อสำเร็จ</Text>
           <Text style={styles.courseSubtitle}>{session.courseName}</Text>
 
           <View style={styles.divider} />
 
           <View style={styles.receiptGrid}>
             <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>SESSION TIME</Text>
+              <Text style={styles.receiptLabel}>เวลาเรียน</Text>
               <Text style={styles.receiptValue}>{session.startTime} - {session.endTime}</Text>
             </View>
             <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>ROOM LOCATION</Text>
-              <Text style={styles.receiptValue}>{session.room || 'Room 301'}</Text>
+              <Text style={styles.receiptLabel}>ห้องเรียน</Text>
+              <Text style={styles.receiptValue}>{session.room || 'ห้อง 301'}</Text>
             </View>
             <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>SUBMISSION TIME</Text>
+              <Text style={styles.receiptLabel}>เวลาที่เช็กชื่อ</Text>
               <Text style={styles.receiptValue}>{formatTimeWithSeconds(verifiedRecord.timestamp)}</Text>
             </View>
             <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>DISTANCE VERIFIED</Text>
-              <Text style={styles.receiptValue}>{verifiedRecord.distanceFromClassroom}m from classroom</Text>
+              <Text style={styles.receiptLabel}>ระยะห่าง</Text>
+              <Text style={styles.receiptValue}>{verifiedRecord.distanceFromClassroom} เมตรจากห้องเรียน</Text>
             </View>
             <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>GPS ACCURACY</Text>
-              <Text style={styles.receiptValue}>±{verifiedRecord.gpsAccuracy}m</Text>
+              <Text style={styles.receiptLabel}>ความแม่นยำ GPS</Text>
+              <Text style={styles.receiptValue}>±{verifiedRecord.gpsAccuracy} ม.</Text>
             </View>
             <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>OFFICIAL STATUS</Text>
+              <Text style={styles.receiptLabel}>สถานะ</Text>
               <Text style={[styles.receiptValue, { color: Colors.stampGreen, fontWeight: '900' }]}>
-                PRESENT
+                มาเรียน
               </Text>
             </View>
           </View>
 
           <View style={styles.securitySeal}>
-            <Text style={styles.sealText}>DIGITALLY SIGNED & ARCHIVED TO CENTRAL REGISTRY</Text>
+            <Text style={styles.sealText}>บันทึกข้อมูลและส่งหลักฐานไปยังระบบเรียบร้อยแล้ว</Text>
           </View>
 
           <PrimaryButton
-            title="BACK TO CHECKPOINT HOME"
+            title="กลับสู่หน้าหลัก"
             variant="primary"
             onPress={() => router.replace('/(student)/home')}
             style={{ marginTop: 20 }}
@@ -215,14 +215,14 @@ export default function AttendanceFlowScreen() {
       {/* Session Header Card */}
       <View style={styles.sessionHeaderCard}>
         <View style={styles.badgeRow}>
-          <Text style={styles.tag}>ATTENDANCE CHECKPOINT</Text>
+          <Text style={styles.tag}>เช็กชื่อเข้าเรียน</Text>
           <Text style={styles.statusIndicator}>
-            STATUS: {session.status.toUpperCase()}
+            สถานะ: {session.status === 'open' ? 'เปิดรับเช็กชื่อ' : 'ปิดรับเช็กชื่อ'}
           </Text>
         </View>
         <Text style={styles.courseName}>{session.courseName}</Text>
         <Text style={styles.timeAndRoom}>
-          {session.startTime} - {session.endTime} • {session.room || 'Room 301'}
+          {session.startTime} - {session.endTime} • {session.room || 'ห้อง 301'}
         </Text>
       </View>
 
@@ -249,17 +249,17 @@ export default function AttendanceFlowScreen() {
       {/* Step 3: Summary and Submission */}
       <View style={styles.submitSection}>
         <View style={styles.checklist}>
-          <Text style={styles.checklistTitle}>VERIFICATION CHECKLIST:</Text>
+          <Text style={styles.checklistTitle}>รายการที่ต้องดำเนินการ:</Text>
           <Text style={styles.checklistItem}>
-            {gpsVerified ? '✓' : '○'} Step 1: Physical classroom proximity verified
+            {gpsVerified ? '✓' : '○'} ขั้นตอนที่ 1: ตรวจสอบพิกัดให้อยู่ในห้องเรียน
           </Text>
           <Text style={styles.checklistItem}>
-            {photoUri ? '✓' : '○'} Step 2: Live photo evidence captured
+            {photoUri ? '✓' : '○'} ขั้นตอนที่ 2: ถ่ายรูปยืนยันตัวตนในห้องเรียน
           </Text>
         </View>
 
         <PrimaryButton
-          title={isReadyToSubmit ? 'SUBMIT ATTENDANCE VERIFICATION' : 'COMPLETE ALL STEPS TO SUBMIT'}
+          title={isReadyToSubmit ? 'ยืนยันการเช็กชื่อ' : 'กรุณาดำเนินการให้ครบทั้ง 2 ขั้นตอน'}
           variant="primary"
           disabled={!isReadyToSubmit}
           loading={submitting}

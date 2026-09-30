@@ -29,7 +29,7 @@ export default function StudentClassesScreen() {
   }, []);
 
   if (loading && !refreshing) {
-    return <LoadingState message="RETRIEVING ENROLLED CURRICULUM..." />;
+    return <LoadingState message="กำลังโหลดรายวิชาที่ลงทะเบียน..." />;
   }
 
   return (
@@ -39,14 +39,14 @@ export default function StudentClassesScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadCourses(); }} />}
     >
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>OFFICIAL COURSE ROSTER</Text>
-        <Text style={styles.subtext}>Verified curriculum enrollments for Academic Year 2026</Text>
+        <Text style={styles.headerTitle}>รายวิชาที่ลงทะเบียนเรียน</Text>
+        <Text style={styles.subtext}>รายวิชาทั้งหมดในภาคการศึกษาปี 2026</Text>
       </View>
 
       {courses.length === 0 ? (
         <EmptyState
-          title="NO ENROLLED COURSES"
-          message="No active course registrations found under your student identification."
+          title="ไม่พบรายวิชาที่ลงทะเบียน"
+          message="ยังไม่มีข้อมูลการลงทะเบียนเรียนในระบบของคุณ"
         />
       ) : (
         courses.map((course) => <CourseCard key={course.id} course={course} />)

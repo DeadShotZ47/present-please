@@ -20,7 +20,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
     switch (status) {
       case 'present':
         return {
-          text: label || '✓ PRESENT',
+          text: label || '✓ มาเรียน',
           color: Colors.stampGreen,
           bg: Colors.stampGreenBg,
           border: Colors.stampGreen,
@@ -28,28 +28,28 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       case 'absent':
       case 'rejected':
         return {
-          text: label || (status === 'absent' ? '✕ ABSENT' : 'REJECTED'),
+          text: label || (status === 'absent' ? '✕ ขาดเรียน' : '✕ ไม่ผ่าน'),
           color: Colors.stampRed,
           bg: Colors.stampRedBg,
           border: Colors.stampRed,
         };
       case 'late':
         return {
-          text: label || 'L LATE',
+          text: label || 'L มาสาย',
           color: Colors.stampAmber,
           bg: Colors.stampAmberBg,
           border: Colors.stampAmber,
         };
       case 'open':
         return {
-          text: label || 'CHECKPOINT OPEN',
+          text: label || 'เปิดรับเช็กชื่อ',
           color: Colors.stampGreen,
           bg: Colors.stampGreenBg,
           border: Colors.stampGreen,
         };
       case 'closed':
         return {
-          text: label || 'CLOSED',
+          text: label || 'ปิดรับเช็กชื่อ',
           color: Colors.inkMuted,
           bg: Colors.panelBackground,
           border: Colors.inkMuted,

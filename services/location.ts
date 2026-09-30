@@ -17,12 +17,12 @@ export const LocationService = {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(
-          'Location Permission Required',
-          'Location permission is required to verify your classroom location.\nPlease enable GPS in your device settings.',
+          'จำเป็นต้องเข้าถึงตำแหน่ง (GPS)',
+          'แอปพลิเคชันจำเป็นต้องใช้พิกัดตำแหน่งเพื่อตรวจสอบว่าคุณอยู่ในห้องเรียนจริง\nกรุณาเปิดการเข้าถึงตำแหน่งในการตั้งค่าอุปกรณ์',
           [
-            { text: 'Cancel', style: 'cancel' },
+            { text: 'ยกเลิก', style: 'cancel' },
             {
-              text: 'Open Settings',
+              text: 'ไปที่การตั้งค่า',
               onPress: () => {
                 if (Platform.OS !== 'web') {
                   Linking.openSettings();

@@ -50,14 +50,14 @@ export default function TeacherSessionAttendanceScreen() {
   };
 
   if (loading) {
-    return <LoadingState message="ACCESSING SESSION ATTENDANCE ROSTER..." />;
+    return <LoadingState message="กำลังโหลดรายชื่อนักศึกษา..." />;
   }
 
   if (!session) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorTitle}>SESSION NOT FOUND</Text>
-        <PrimaryButton title="RETURN" onPress={() => router.back()} />
+        <Text style={styles.errorTitle}>ไม่พบคาบเรียนนี้</Text>
+        <PrimaryButton title="ย้อนกลับ" onPress={() => router.back()} />
       </View>
     );
   }
@@ -75,31 +75,31 @@ export default function TeacherSessionAttendanceScreen() {
           <Text style={styles.code}>{session.courseCode}</Text>
           <Text style={styles.courseName}>{session.courseName}</Text>
           <Text style={styles.roomAndTime}>
-            {session.startTime} - {session.endTime} • {session.room || 'Room 301'}
+            {session.startTime} - {session.endTime} • {session.room || 'ห้อง 301'}
           </Text>
 
           <View style={styles.divider} />
 
           <View style={styles.statsRow}>
             <View>
-              <Text style={styles.statLabel}>VERIFIED ATTENDEES</Text>
+              <Text style={styles.statLabel}>นักศึกษาที่เช็กชื่อแล้ว</Text>
               <Text style={styles.statCount}>
-                {totalVerified} / {totalExpected}
+                {totalVerified} / {totalExpected} คน
               </Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.statLabel}>CHECKPOINT STATUS</Text>
+              <Text style={styles.statLabel}>สถานะการเช็กชื่อ</Text>
               <StatusBadge status={session.status} size="small" />
             </View>
           </View>
         </View>
 
-        <Text style={styles.rosterTitle}>INSPECTION LOG ENTRIES ({attendances.length})</Text>
+        <Text style={styles.rosterTitle}>รายชื่อนักศึกษาที่เช็กชื่อ ({attendances.length} คน)</Text>
 
         {attendances.length === 0 ? (
           <EmptyState
-            title="NO ATTENDEES RECORDED"
-            message="No students have submitted physical presence evidence yet."
+            title="ยังไม่มีนักศึกษาเช็กชื่อ"
+            message="ยังไม่มีข้อมูลการส่งเช็กชื่อในคาบนี้"
           />
         ) : (
           attendances.map((item) => (
@@ -110,15 +110,15 @@ export default function TeacherSessionAttendanceScreen() {
               onPress={() => setInspectRecord(item)}
             >
               <View style={{ flex: 1 }}>
-                <Text style={styles.studentName}>{item.studentName || 'Student Citizen'}</Text>
+                <Text style={styles.studentName}>{item.studentName || 'นักศึกษา'}</Text>
                 <Text style={styles.submissionMeta}>
-                  {formatTimeWithSeconds(item.timestamp)} • {item.distanceFromClassroom}m from room
+                  {formatTimeWithSeconds(item.timestamp)} • ห่างจากห้อง {item.distanceFromClassroom} ม.
                 </Text>
               </View>
 
               <View style={styles.rowRight}>
                 <StatusBadge status={item.status} size="small" />
-                <Text style={styles.inspectBtn}>INSPECT →</Text>
+                <Text style={styles.inspectBtn}>ดูหลักฐาน →</Text>
               </View>
             </TouchableOpacity>
           ))
@@ -135,9 +135,9 @@ export default function TeacherSessionAttendanceScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>PHYSICAL EVIDENCE DOSSIER</Text>
+              <Text style={styles.modalTitle}>หลักฐานการเช็กชื่อของนักศึกษา</Text>
               <TouchableOpacity onPress={() => setInspectRecord(null)}>
-                <Text style={styles.closeBtn}>✕ CLOSE</Text>
+                <Text style={styles.closeBtn}>✕ ปิด</Text>
               </TouchableOpacity>
             </View>
 
@@ -145,7 +145,7 @@ export default function TeacherSessionAttendanceScreen() {
               <ScrollView>
                 <Text style={styles.modalStudentName}>{inspectRecord.studentName}</Text>
                 <Text style={styles.modalTime}>
-                  Submitted at: {formatTimeWithSeconds(inspectRecord.timestamp)}
+                  เวลาที่ส่ง: {formatTimeWithSeconds(inspectRecord.timestamp)}
                 </Text>
 
                 <View style={styles.modalBadgeRow}>
@@ -160,28 +160,28 @@ export default function TeacherSessionAttendanceScreen() {
                       resizeMode="cover"
                     />
                     <View style={styles.watermark}>
-                      <Text style={styles.watermarkText}>VERIFIED CHECKPOINT CAPTURE</Text>
+                      <Text style={styles.watermarkText}>ภาพถ่ายยืนยันตัวตน</Text>
                     </View>
                   </View>
                 ) : (
                   <View style={styles.noPhoto}>
-                    <Text style={styles.noPhotoText}>NO PHOTO CAPTURED</Text>
+                    <Text style={styles.noPhotoText}>ไม่มีภาพถ่าย</Text>
                   </View>
                 )}
 
                 <View style={styles.modalInfoGrid}>
                   <View style={styles.modalInfoRow}>
-                    <Text style={styles.modalInfoLabel}>VERIFIED DISTANCE:</Text>
+                    <Text style={styles.modalInfoLabel}>ระยะห่างจากห้องเรียน:</Text>
                     <Text style={styles.modalInfoValue}>
-                      {inspectRecord.distanceFromClassroom} meters from classroom
+                      {inspectRecord.distanceFromClassroom} เมตร
                     </Text>
                   </View>
                   <View style={styles.modalInfoRow}>
-                    <Text style={styles.modalInfoLabel}>GPS ACCURACY:</Text>
-                    <Text style={styles.modalInfoValue}>±{inspectRecord.gpsAccuracy} meters</Text>
+                    <Text style={styles.modalInfoLabel}>ความแม่นยำ GPS:</Text>
+                    <Text style={styles.modalInfoValue}>±{inspectRecord.gpsAccuracy} เมตร</Text>
                   </View>
                   <View style={styles.modalInfoRow}>
-                    <Text style={styles.modalInfoLabel}>COORDINATES:</Text>
+                    <Text style={styles.modalInfoLabel}>พิกัดตำแหน่ง:</Text>
                     <Text style={styles.modalInfoValue}>
                       {inspectRecord.latitude.toFixed(5)}, {inspectRecord.longitude.toFixed(5)}
                     </Text>
@@ -189,7 +189,7 @@ export default function TeacherSessionAttendanceScreen() {
                 </View>
 
                 <PrimaryButton
-                  title="CONFIRM INSPECTION"
+                  title="ปิดหน้าต่างตรวจสอบ"
                   variant="primary"
                   onPress={() => setInspectRecord(null)}
                   style={{ marginTop: 16 }}

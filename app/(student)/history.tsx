@@ -46,7 +46,7 @@ export default function StudentHistoryScreen() {
   );
 
   if (loading && !refreshing) {
-    return <LoadingState message="ACCESSING ARCHIVED VERIFICATION LOGS..." />;
+    return <LoadingState message="กำลังโหลดประวัติการเข้าเรียน..." />;
   }
 
   return (
@@ -56,14 +56,14 @@ export default function StudentHistoryScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadHistory(); }} />}
     >
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ATTENDANCE DOSSIER</Text>
-        <Text style={styles.subtext}>Official log of verified presence and absences</Text>
+        <Text style={styles.headerTitle}>ประวัติการเข้าเรียน</Text>
+        <Text style={styles.subtext}>บันทึกรายการเข้าเรียนและขาดเรียนทั้งหมด</Text>
       </View>
 
       {attendances.length === 0 ? (
         <EmptyState
-          title="NO ENTRIES RECORDED"
-          message="No attendance verification entries have been filed yet."
+          title="ยังไม่มีประวัติการเช็กชื่อ"
+          message="ยังไม่มีบันทึกข้อมูลการเช็กชื่อในระบบของคุณ"
         />
       ) : (
         attendances.map((record) => (
@@ -80,7 +80,7 @@ export default function StudentHistoryScreen() {
           >
             <View style={styles.topRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.courseName}>{record.courseName || 'Course Session'}</Text>
+                <Text style={styles.courseName}>{record.courseName || 'คาบเรียน'}</Text>
                 <Text style={styles.dateText}>
                   {formatDate(record.timestamp)} • {formatTime(record.timestamp)}
                 </Text>
@@ -93,10 +93,10 @@ export default function StudentHistoryScreen() {
             <View style={styles.bottomRow}>
               <Text style={styles.metaText}>
                 {record.status === 'absent'
-                  ? 'NO SUBMISSION ON FILE'
-                  : `GPS: ${record.distanceFromClassroom}m from room (±${record.gpsAccuracy}m)`}
+                  ? 'ไม่มีการส่งข้อมูลเช็กชื่อ'
+                  : `GPS: ห่างจากห้อง ${record.distanceFromClassroom} ม. (±${record.gpsAccuracy} ม.)`}
               </Text>
-              <Text style={styles.inspectText}>INSPECT RECORD →</Text>
+              <Text style={styles.inspectText}>ดูหลักฐาน →</Text>
             </View>
           </TouchableOpacity>
         ))

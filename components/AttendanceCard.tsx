@@ -29,7 +29,7 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({
         </View>
         <StatusBadge
           status={isCompleted ? 'present' : isOpen ? 'open' : 'closed'}
-          label={isCompleted ? '✓ CHECKED' : undefined}
+          label={isCompleted ? '✓ เช็กชื่อแล้ว' : undefined}
           size="small"
         />
       </View>
@@ -38,16 +38,16 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({
 
       <View style={styles.infoGrid}>
         <View style={styles.infoCol}>
-          <Text style={styles.label}>TIME WINDOW</Text>
+          <Text style={styles.label}>เวลาเรียน</Text>
           <Text style={styles.value}>{session.startTime} - {session.endTime}</Text>
         </View>
         <View style={styles.infoCol}>
-          <Text style={styles.label}>ROOM</Text>
-          <Text style={styles.value}>{session.room || 'Room 301'}</Text>
+          <Text style={styles.label}>ห้องเรียน</Text>
+          <Text style={styles.value}>{session.room || 'ห้อง 301'}</Text>
         </View>
         <View style={styles.infoCol}>
-          <Text style={styles.label}>RADIUS</Text>
-          <Text style={styles.value}>{session.allowedRadius}m</Text>
+          <Text style={styles.label}>รัศมีพิกัด</Text>
+          <Text style={styles.value}>{session.allowedRadius} ม.</Text>
         </View>
       </View>
 
@@ -55,14 +55,14 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({
         <View style={styles.actionContainer}>
           {isOpen ? (
             <PrimaryButton
-              title="CHECK ATTENDANCE"
+              title="เช็กชื่อเข้าเรียน"
               variant="primary"
               onPress={onCheckAttendance}
               style={{ marginTop: 8 }}
             />
           ) : (
             <View style={styles.closedNotice}>
-              <Text style={styles.closedText}>ATTENDANCE: NOT OPEN</Text>
+              <Text style={styles.closedText}>ยังไม่เปิดให้เช็กชื่อ</Text>
             </View>
           )}
         </View>
@@ -70,7 +70,7 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({
 
       {onViewDetails && (
         <TouchableOpacity onPress={onViewDetails} style={styles.detailsLink}>
-          <Text style={styles.detailsLinkText}>INSPECT SESSION DETAILS →</Text>
+          <Text style={styles.detailsLinkText}>ดูรายละเอียดคาบเรียน →</Text>
         </TouchableOpacity>
       )}
     </View>

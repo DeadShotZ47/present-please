@@ -51,12 +51,12 @@ class ApiService {
     );
 
     if (!foundUser) {
-      throw new Error('Invalid credentials. Check your Email or Student ID.');
+      throw new Error('อีเมล รหัสนักศึกษา หรือรหัสผ่านไม่ถูกต้อง');
     }
 
     // In production or student project demo, simple password check
     if (password.length < 4) {
-      throw new Error('Password must be at least 4 characters.');
+      throw new Error('รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร');
     }
 
     const token = `token_${foundUser.id}_${Date.now()}`;
@@ -78,7 +78,7 @@ class ApiService {
 
     const emailLower = data.email.trim().toLowerCase();
     if (users.some((u) => u.email.toLowerCase() === emailLower)) {
-      throw new Error('User with this email already exists.');
+      throw new Error('มีผู้ใช้งานที่ใช้อีเมลนี้ในระบบแล้ว');
     }
 
     const newUser: User = {
@@ -87,7 +87,7 @@ class ApiService {
       email: emailLower,
       studentId: data.role === 'student' ? data.studentId?.trim() : undefined,
       role: data.role,
-      department: data.role === 'student' ? 'College of Computing' : 'Department of Computer Science',
+      department: data.role === 'student' ? 'วิทยาลัยการคอมพิวเตอร์' : 'สาขาวิชาวิทยาการคอมพิวเตอร์',
     };
 
     users.push(newUser);
@@ -159,7 +159,7 @@ class ApiService {
     const sessions = (await StorageService.getItem<AttendanceSession[]>(SESSIONS_STORAGE_KEY)) || INITIAL_SESSIONS;
     const sessionIndex = sessions.findIndex((s) => s.id === id);
     if (sessionIndex === -1) {
-      throw new Error('Session not found.');
+      throw new Error('ไม่พบคลาสเรียนนี้ในระบบ');
     }
 
     sessions[sessionIndex].status = status;
@@ -181,20 +181,20 @@ class ApiService {
     await this.ensureInitialized();
     const currentUser = await this.getCurrentUser();
     if (!currentUser) {
-      throw new Error('Please login before checking attendance.');
+      throw new Error('กรุณาเข้าสู่ระบบก่อนเช็กชื่อเข้าเรียน');
     }
 
     const session = await this.getSessionById(payload.sessionId);
     if (!session) {
-      throw new Error('Attendance session does not exist.');
+      throw new Error('ไม่พบคาบเรียนที่ต้องการเช็กชื่อ');
     }
 
     if (session.status !== 'open') {
-      throw new Error('Attendance is currently closed.');
+      throw new Error('คาบเรียนนี้ปิดรับการเช็กชื่อแล้ว');
     }
 
     if (!payload.photoUri) {
-      throw new Error('Photo evidence is required.');
+      throw new Error('กรุณาถ่ายภาพถ่ายยืนยันตัวตนก่อนส่งข้อมูล');
     }
 
     // Duplicate attendance rule
@@ -203,7 +203,7 @@ class ApiService {
       (a) => a.sessionId === payload.sessionId && a.studentId === currentUser.id
     );
     if (alreadySubmitted) {
-      throw new Error('Attendance already submitted for this session.');
+      throw new Error('คุณได้เช็กชื่อในคาบเรียนนี้เรียบร้อยแล้ว (ไม่สามารถส่งซ้ำได้)');
     }
 
     // Distance calculation verification
@@ -216,7 +216,7 @@ class ApiService {
 
     if (distance > session.allowedRadius) {
       throw new Error(
-        `Location verification failed. You are ${distance}m away (allowed: ${session.allowedRadius}m).`
+        `ตรวจสอบตำแหน่งไม่ผ่าน: คุณอยู่ห่างจากห้องเรียน ${distance} เมตร (อนุญาตไม่เกิน ${session.allowedRadius} เมตร)`
       );
     }
 
@@ -236,7 +236,7 @@ class ApiService {
       gpsAccuracy: payload.gpsAccuracy || 10,
       photoUrl: payload.photoUri,
       status: 'present',
-      verificationNotes: `Verified on-site. Distance: ${distance}m. Checkpoint passed.`,
+      verificationNotes: `ยืนยันการเข้าเรียนสำเร็จ อยู่ห่างจากห้องเรียน ${distance} เมตร`,
     };
 
     allAttendance.unshift(newRecord);

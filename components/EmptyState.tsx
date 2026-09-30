@@ -11,7 +11,7 @@ interface EmptyStateProps {
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  title = 'NO RECORDS FOUND',
+  title = 'ไม่พบข้อมูล',
   message,
   actionTitle,
   onAction,

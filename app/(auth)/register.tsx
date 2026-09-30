@@ -32,23 +32,23 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     setError(null);
     if (!name.trim()) {
-      setError('Please provide your full legal name.');
+      setError('กรุณากรอกชื่อ-นามสกุล');
       return;
     }
     if (!email.trim() || !email.includes('@')) {
-      setError('Valid institutional email is required.');
+      setError('กรุณากรอกอีเมลที่ถูกต้อง');
       return;
     }
     if (role === 'student' && !studentId.trim()) {
-      setError('Student ID number is required.');
+      setError('กรุณากรอกรหัสนักศึกษา');
       return;
     }
     if (password.length < 4) {
-      setError('Password must be at least 4 characters.');
+      setError('รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร');
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError('รหัสผ่านยืนยันไม่ตรงกัน');
       return;
     }
 
@@ -68,7 +68,7 @@ export default function RegisterScreen() {
         router.replace('/(student)/home');
       }
     } catch (err: any) {
-      setError(err?.message || 'Registration rejected.');
+      setError(err?.message || 'การลงทะเบียนไม่สำเร็จ');
     } finally {
       setLoading(false);
     }
@@ -81,21 +81,21 @@ export default function RegisterScreen() {
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
-          <Text style={styles.cardHeader}>CITIZEN / PERSONNEL ENROLLMENT</Text>
-          <Text style={styles.cardSub}>Fill in verified institutional identification</Text>
+          <Text style={styles.cardHeader}>ลงทะเบียนผู้ใช้งานใหม่</Text>
+          <Text style={styles.cardSub}>กรอกข้อมูลเพื่อสร้างบัญชีผู้ใช้งานระบบเช็กชื่อ</Text>
           <View style={styles.headerDivider} />
 
           <ErrorMessage message={error || ''} />
 
           {/* Role Selector Tabs */}
-          <Text style={styles.label}>OFFICIAL ROLE</Text>
+          <Text style={styles.label}>ประเภทผู้ใช้งาน</Text>
           <View style={styles.roleContainer}>
             <TouchableOpacity
               style={[styles.roleTab, role === 'student' && styles.roleTabActive]}
               onPress={() => setRole('student')}
             >
               <Text style={[styles.roleTabText, role === 'student' && styles.roleTabTextActive]}>
-                STUDENT
+                นักศึกษา
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -103,16 +103,16 @@ export default function RegisterScreen() {
               onPress={() => setRole('teacher')}
             >
               <Text style={[styles.roleTabText, role === 'teacher' && styles.roleTabTextActive]}>
-                TEACHER / FACULTY
+                อาจารย์ผู้สอน
               </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>FULL NAME</Text>
+            <Text style={styles.label}>ชื่อ - นามสกุล</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. John Doe"
+              placeholder="เช่น นายสมชาย ใจดี"
               placeholderTextColor={Colors.inkFaint}
               value={name}
               onChangeText={setName}
@@ -120,10 +120,10 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>INSTITUTIONAL EMAIL</Text>
+            <Text style={styles.label}>อีเมล</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. user@example.com"
+              placeholder="เช่น somchai@example.com"
               placeholderTextColor={Colors.inkFaint}
               value={email}
               onChangeText={setEmail}
@@ -134,10 +134,10 @@ export default function RegisterScreen() {
 
           {role === 'student' && (
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>STUDENT ID (10 DIGITS)</Text>
+              <Text style={styles.label}>รหัสนักศึกษา (10 หลัก)</Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g. 6501234567"
+                placeholder="เช่น 6501234567"
                 placeholderTextColor={Colors.inkFaint}
                 value={studentId}
                 onChangeText={setStudentId}
@@ -147,7 +147,7 @@ export default function RegisterScreen() {
           )}
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>PASSWORD</Text>
+            <Text style={styles.label}>รหัสผ่าน</Text>
             <TextInput
               style={styles.input}
               placeholder="••••••••"
@@ -159,7 +159,7 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>CONFIRM PASSWORD</Text>
+            <Text style={styles.label}>ยืนยันรหัสผ่าน</Text>
             <TextInput
               style={styles.input}
               placeholder="••••••••"
@@ -171,7 +171,7 @@ export default function RegisterScreen() {
           </View>
 
           <PrimaryButton
-            title="SUBMIT REGISTRATION"
+            title="ยืนยันการลงทะเบียน"
             variant="primary"
             loading={loading}
             onPress={handleRegister}
@@ -182,7 +182,7 @@ export default function RegisterScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backButtonText}>← RETURN TO LOGIN</Text>
+            <Text style={styles.backButtonText}>← กลับไปยังหน้าเข้าสู่ระบบ</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

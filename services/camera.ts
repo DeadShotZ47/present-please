@@ -10,12 +10,12 @@ export const CameraService = {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(
-          'Camera Permission Required',
-          'Camera permission is required to submit attendance evidence.\nPlease allow camera access in Settings.',
+          'จำเป็นต้องเข้าถึงกล้องถ่ายรูป',
+          'แอปพลิเคชันจำเป็นต้องใช้กล้องถ่ายรูปเพื่อถ่ายภาพยืนยันการเข้าเรียน\nกรุณาเปิดสิทธิ์การใช้งานกล้องในการตั้งค่าอุปกรณ์',
           [
-            { text: 'Cancel', style: 'cancel' },
+            { text: 'ยกเลิก', style: 'cancel' },
             {
-              text: 'Open Settings',
+              text: 'ไปที่การตั้งค่า',
               onPress: () => {
                 if (Platform.OS !== 'web') {
                   Linking.openSettings();

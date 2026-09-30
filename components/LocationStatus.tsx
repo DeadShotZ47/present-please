@@ -26,8 +26,8 @@ export const LocationStatus: React.FC<LocationStatusProps> = ({
     return (
       <View style={styles.card}>
         <ActivityIndicator size="small" color={Colors.inkDark} />
-        <Text style={styles.loadingText}>CHECKING YOUR GPS COORDINATES...</Text>
-        <Text style={styles.subText}>Acquiring high accuracy satellite fix</Text>
+        <Text style={styles.loadingText}>กำลังตรวจสอบพิกัด GPS...</Text>
+        <Text style={styles.subText}>กำลังรับสัญญาณเพื่อระบุตำแหน่งที่แม่นยำ</Text>
       </View>
     );
   }
@@ -35,10 +35,10 @@ export const LocationStatus: React.FC<LocationStatusProps> = ({
   if (errorMessage) {
     return (
       <View style={[styles.card, styles.cardFailed]}>
-        <Text style={styles.failTitle}>✕ LOCATION VERIFICATION FAILED</Text>
+        <Text style={styles.failTitle}>✕ ตรวจสอบตำแหน่งไม่ผ่าน</Text>
         <Text style={styles.failDetail}>{errorMessage}</Text>
         <PrimaryButton
-          title="RETRY GPS VERIFICATION"
+          title="ตรวจสอบตำแหน่งใหม่อีกครั้ง"
           variant="secondary"
           onPress={onRetry}
           style={{ marginTop: 12 }}
@@ -50,12 +50,12 @@ export const LocationStatus: React.FC<LocationStatusProps> = ({
   if (distance === null) {
     return (
       <View style={styles.card}>
-        <Text style={styles.neutralTitle}>STEP 1: LOCATION CHECK</Text>
+        <Text style={styles.neutralTitle}>ขั้นตอนที่ 1: ตรวจสอบตำแหน่งห้องเรียน</Text>
         <Text style={styles.neutralText}>
-          Your device coordinates will be verified against the classroom boundary (within {allowedRadius}m).
+          ระบบจะตรวจสอบว่าพิกัดของคุณอยู่ในรัศมีของห้องเรียนหรือไม่ (ไม่เกิน {allowedRadius} เมตร)
         </Text>
         <PrimaryButton
-          title="CHECK LOCATION"
+          title="ตรวจสอบตำแหน่งปัจจุบัน"
           variant="primary"
           onPress={onRetry}
           style={{ marginTop: 12 }}
@@ -67,16 +67,16 @@ export const LocationStatus: React.FC<LocationStatusProps> = ({
   if (!verified) {
     return (
       <View style={[styles.card, styles.cardFailed]}>
-        <Text style={styles.failTitle}>✕ LOCATION VERIFICATION FAILED</Text>
+        <Text style={styles.failTitle}>✕ ตรวจสอบตำแหน่งไม่ผ่าน</Text>
         <Text style={styles.failDetail}>
-          You are approximately <Text style={{ fontWeight: '900' }}>{distance}m</Text> away from the classroom.
+          คุณอยู่ห่างจากห้องเรียนประมาณ <Text style={{ fontWeight: '900' }}>{distance} เมตร</Text>
         </Text>
-        <Text style={styles.criteria}>Allowed radius: {allowedRadius}m</Text>
+        <Text style={styles.criteria}>รัศมีที่อนุญาต: {allowedRadius} เมตร</Text>
         {accuracy !== null && (
-          <Text style={styles.criteria}>GPS Accuracy: ±{accuracy}m</Text>
+          <Text style={styles.criteria}>ความแม่นยำของ GPS: ±{accuracy} เมตร</Text>
         )}
         <PrimaryButton
-          title="RETRY LOCATION"
+          title="ลองตรวจสอบตำแหน่งใหม่"
           variant="secondary"
           onPress={onRetry}
           style={{ marginTop: 12 }}
@@ -87,27 +87,27 @@ export const LocationStatus: React.FC<LocationStatusProps> = ({
 
   return (
     <View style={[styles.card, styles.cardSuccess]}>
-      <Text style={styles.successTitle}>✓ LOCATION VERIFIED</Text>
+      <Text style={styles.successTitle}>✓ ตำแหน่งถูกต้อง (อยู่ในห้องเรียน)</Text>
       <View style={styles.successRow}>
         <View>
-          <Text style={styles.label}>DISTANCE FROM ROOM</Text>
-          <Text style={styles.successValue}>{distance}m</Text>
+          <Text style={styles.label}>ระยะห่างจากห้อง</Text>
+          <Text style={styles.successValue}>{distance} ม.</Text>
         </View>
         <View>
-          <Text style={styles.label}>GPS ACCURACY</Text>
-          <Text style={styles.successValue}>±{accuracy || 8}m</Text>
+          <Text style={styles.label}>ความแม่นยำ GPS</Text>
+          <Text style={styles.successValue}>±{accuracy || 8} ม.</Text>
         </View>
         <View>
-          <Text style={styles.label}>STATUS</Text>
-          <Text style={[styles.successValue, { color: Colors.stampGreen }]}>PASS</Text>
+          <Text style={styles.label}>ผลการตรวจ</Text>
+          <Text style={[styles.successValue, { color: Colors.stampGreen }]}>ผ่าน</Text>
         </View>
       </View>
       <PrimaryButton
-        title="RE-CHECK LOCATION"
+        title="ตรวจสอบตำแหน่งซ้ำ"
         variant="outline"
         onPress={onRetry}
         style={{ marginTop: 12, height: 38 }}
-        textStyle={{ fontSize: 11 }}
+        textStyle={{ fontSize: 12 }}
       />
     </View>
   );

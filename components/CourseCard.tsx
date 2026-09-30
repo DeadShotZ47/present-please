@@ -12,7 +12,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
     <View style={styles.card}>
       <View style={styles.topRow}>
         <Text style={styles.code}>{course.code}</Text>
-        <Text style={styles.students}>{course.enrolledStudentsCount || 40} STUDENTS</Text>
+        <Text style={styles.students}>{course.enrolledStudentsCount || 40} คน</Text>
       </View>
       <Text style={styles.name}>{course.name}</Text>
       
@@ -20,11 +20,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
 
       <View style={styles.infoRow}>
         <View>
-          <Text style={styles.label}>INSTRUCTOR</Text>
-          <Text style={styles.value}>{course.teacherName || 'Faculty Staff'}</Text>
+          <Text style={styles.label}>อาจารย์ผู้สอน</Text>
+          <Text style={styles.value}>{course.teacherName || 'อาจารย์ประจำวิชา'}</Text>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
-          <Text style={styles.label}>ROOM / SCHEDULE</Text>
+          <Text style={styles.label}>ห้องเรียน / ตารางเวลา</Text>
           <Text style={styles.value}>{course.room} • {course.schedule}</Text>
         </View>
       </View>

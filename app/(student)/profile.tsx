@@ -17,14 +17,14 @@ export default function StudentProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.badgeHeader}>
-        <Text style={styles.badgeHeaderText}>MINISTRY OF HIGHER EDUCATION & DISCIPLINE</Text>
+        <Text style={styles.badgeHeaderText}>ข้อมูลบัญชีผู้ใช้งาน</Text>
       </View>
 
       {/* ID Badge Card */}
       <View style={styles.idCard}>
         <View style={styles.topBar}>
-          <Text style={styles.cardType}>STUDENT IDENTIFICATION PERMIT</Text>
-          <Text style={styles.validYear}>VALID: 2026</Text>
+          <Text style={styles.cardType}>บัตรประจำตัวนักศึกษา</Text>
+          <Text style={styles.validYear}>ปีการศึกษา 2026</Text>
         </View>
 
         <View style={styles.profileRow}>
@@ -33,14 +33,14 @@ export default function StudentProfileScreen() {
               <Image source={{ uri: user.profileImage }} style={styles.avatar} />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarPlaceholderText}>PHOTO</Text>
+                <Text style={styles.avatarPlaceholderText}>รูปถ่าย</Text>
               </View>
             )}
           </View>
           <View style={styles.mainInfo}>
-            <Text style={styles.name}>{user?.name || 'STUDENT CITIZEN'}</Text>
-            <Text style={styles.roleTag}>STATUS: REGISTERED STUDENT</Text>
-            <Text style={styles.dept}>{user?.department || 'College of Computing'}</Text>
+            <Text style={styles.name}>{user?.name || 'นักศึกษา'}</Text>
+            <Text style={styles.roleTag}>สถานะ: นักศึกษาลงทะเบียน</Text>
+            <Text style={styles.dept}>{user?.department || 'วิทยาลัยการคอมพิวเตอร์'}</Text>
           </View>
         </View>
 
@@ -48,26 +48,26 @@ export default function StudentProfileScreen() {
 
         <View style={styles.infoGrid}>
           <View style={styles.field}>
-            <Text style={styles.label}>STUDENT IDENTIFIER</Text>
+            <Text style={styles.label}>รหัสนักศึกษา</Text>
             <Text style={styles.value}>{user?.studentId || '6501234567'}</Text>
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>INSTITUTIONAL EMAIL</Text>
+            <Text style={styles.label}>อีเมล</Text>
             <Text style={styles.value}>{user?.email || 'student@example.com'}</Text>
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>SYSTEM ACCESS LEVEL</Text>
-            <Text style={styles.value}>STANDARD (STUDENT)</Text>
+            <Text style={styles.label}>สิทธิ์การใช้งาน</Text>
+            <Text style={styles.value}>นักศึกษา (Student)</Text>
           </View>
         </View>
 
         <View style={styles.signatureSection}>
-          <Text style={styles.seal}>OFFICIAL STAMP: VERIFIED</Text>
+          <Text style={styles.seal}>ยืนยันตัวตนในระบบแล้ว</Text>
         </View>
       </View>
 
       <PrimaryButton
-        title="SURRENDER CREDENTIALS & LOGOUT"
+        title="ออกจากระบบ"
         variant="danger"
         onPress={handleLogout}
         style={{ marginTop: 24 }}

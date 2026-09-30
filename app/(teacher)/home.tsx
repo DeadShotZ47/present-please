@@ -54,7 +54,7 @@ export default function TeacherHomeScreen() {
   };
 
   if (loading && !refreshing) {
-    return <LoadingState message="ACCESSING FACULTY COMMAND POST..." />;
+    return <LoadingState message="กำลังโหลดข้อมูลแดชบอร์ดอาจารย์..." />;
   }
 
   return (
@@ -66,27 +66,27 @@ export default function TeacherHomeScreen() {
       {/* Officer Header Card */}
       <View style={styles.officerCard}>
         <View style={styles.officerRow}>
-          <Text style={styles.officerTag}>CHECKPOINT CHIEF / FACULTY</Text>
-          <Text style={styles.officerDept}>{user?.department || 'Department of Computer Science'}</Text>
+          <Text style={styles.officerTag}>อาจารย์ประจำวิชา</Text>
+          <Text style={styles.officerDept}>{user?.department || 'สาขาวิชาวิทยาการคอมพิวเตอร์'}</Text>
         </View>
-        <Text style={styles.officerName}>{user?.name || 'Instructor'}</Text>
+        <Text style={styles.officerName}>{user?.name || 'อาจารย์ผู้สอน'}</Text>
         <Text style={styles.officerSub}>
-          Oversee classroom boundary enforcement and review physical evidence submissions.
+          จัดการคาบเรียน กำหนดพิกัดห้องเรียน และตรวจสอบการเช็กชื่อของนักศึกษา
         </Text>
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>ACTIVE CLASS SESSIONS</Text>
+        <Text style={styles.sectionTitle}>คาบเรียนทั้งหมด</Text>
         <TouchableOpacity onPress={() => router.push('/(teacher)/create-session')}>
-          <Text style={styles.newSessionLink}>+ NEW SESSION</Text>
+          <Text style={styles.newSessionLink}>+ เปิดคาบเรียนใหม่</Text>
         </TouchableOpacity>
       </View>
 
       {sessions.length === 0 ? (
         <EmptyState
-          title="NO ACTIVE SESSIONS"
-          message="No attendance sessions have been created for today."
-          actionTitle="CREATE ATTENDANCE SESSION"
+          title="ยังไม่มีคาบเรียนที่สร้างไว้"
+          message="ยังไม่มีคาบเช็กชื่อที่เปิดอยู่ในวันนี้"
+          actionTitle="เปิดคาบเช็กชื่อใหม่"
           onAction={() => router.push('/(teacher)/create-session')}
         />
       ) : (
@@ -109,29 +109,29 @@ export default function TeacherHomeScreen() {
 
               <View style={styles.infoRow}>
                 <View>
-                  <Text style={styles.label}>TIME & ROOM</Text>
+                  <Text style={styles.label}>เวลาและห้องเรียน</Text>
                   <Text style={styles.value}>
-                    {session.startTime} - {session.endTime} ({session.room || 'Room 301'})
+                    {session.startTime} - {session.endTime} ({session.room || 'ห้อง 301'})
                   </Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={styles.label}>ATTENDANCE COUNT</Text>
+                  <Text style={styles.label}>จำนวนที่เข้าเรียน</Text>
                   <Text style={styles.attendanceCount}>
-                    {present} / {total}
+                    {present} / {total} คน
                   </Text>
                 </View>
               </View>
 
               <View style={styles.buttonRow}>
                 <PrimaryButton
-                  title={isOpen ? 'CLOSE SESSION' : 'OPEN SESSION'}
+                  title={isOpen ? 'ปิดรับเช็กชื่อ' : 'เปิดรับเช็กชื่อ'}
                   variant={isOpen ? 'outline' : 'secondary'}
                   onPress={() => toggleStatus(session.id, session.status)}
                   style={{ flex: 1, height: 42 }}
-                  textStyle={{ fontSize: 11 }}
+                  textStyle={{ fontSize: 12 }}
                 />
                 <PrimaryButton
-                  title="VIEW ATTENDANCE"
+                  title="ดูรายชื่อผู้เข้าเรียน"
                   variant="primary"
                   onPress={() => {
                     router.push({
@@ -140,7 +140,7 @@ export default function TeacherHomeScreen() {
                     });
                   }}
                   style={{ flex: 1.2, height: 42 }}
-                  textStyle={{ fontSize: 11 }}
+                  textStyle={{ fontSize: 12 }}
                 />
               </View>
             </View>

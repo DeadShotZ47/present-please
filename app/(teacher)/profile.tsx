@@ -17,14 +17,14 @@ export default function TeacherProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.badgeHeader}>
-        <Text style={styles.badgeHeaderText}>ACADEMIC DISCIPLINARY COMMISSION</Text>
+        <Text style={styles.badgeHeaderText}>ข้อมูลบัญชีผู้ใช้งานอาจารย์</Text>
       </View>
 
       {/* Faculty Credential Card */}
       <View style={styles.idCard}>
         <View style={styles.topBar}>
-          <Text style={styles.cardType}>FACULTY APPOINTMENT MANDATE</Text>
-          <Text style={styles.validYear}>VALID: 2026</Text>
+          <Text style={styles.cardType}>บัตรประจำตัวอาจารย์ผู้สอน</Text>
+          <Text style={styles.validYear}>ปีการศึกษา 2026</Text>
         </View>
 
         <View style={styles.profileRow}>
@@ -33,14 +33,14 @@ export default function TeacherProfileScreen() {
               <Image source={{ uri: user.profileImage }} style={styles.avatar} />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarPlaceholderText}>PHOTO</Text>
+                <Text style={styles.avatarPlaceholderText}>รูปถ่าย</Text>
               </View>
             )}
           </View>
           <View style={styles.mainInfo}>
-            <Text style={styles.name}>{user?.name || 'Dr. Robert Vance'}</Text>
-            <Text style={styles.roleTag}>AUTHORITY: VERIFIED INSTRUCTOR</Text>
-            <Text style={styles.dept}>{user?.department || 'Department of Computer Science'}</Text>
+            <Text style={styles.name}>{user?.name || 'ดร. โรเบิร์ต แวนซ์'}</Text>
+            <Text style={styles.roleTag}>สถานะ: อาจารย์ประจำวิชา</Text>
+            <Text style={styles.dept}>{user?.department || 'สาขาวิชาวิทยาการคอมพิวเตอร์'}</Text>
           </View>
         </View>
 
@@ -48,28 +48,28 @@ export default function TeacherProfileScreen() {
 
         <View style={styles.infoGrid}>
           <View style={styles.field}>
-            <Text style={styles.label}>FACULTY EMAIL</Text>
+            <Text style={styles.label}>อีเมลอาจารย์</Text>
             <Text style={styles.value}>{user?.email || 'teacher@example.com'}</Text>
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>DEPARTMENT</Text>
-            <Text style={styles.value}>{user?.department || 'Computer Science'}</Text>
+            <Text style={styles.label}>สาขาวิชา / ภาควิชา</Text>
+            <Text style={styles.value}>{user?.department || 'สาขาวิชาวิทยาการคอมพิวเตอร์'}</Text>
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>CLEARANCE LEVEL</Text>
+            <Text style={styles.label}>สิทธิ์การใช้งานระบบ</Text>
             <Text style={[styles.value, { color: Colors.stampBlue }]}>
-              LEVEL 4 (SUPERVISOR / CHECKPOINT OPERATOR)
+              อาจารย์ผู้สอน (Teacher / Faculty)
             </Text>
           </View>
         </View>
 
         <View style={styles.signatureSection}>
-          <Text style={styles.seal}>OFFICIAL BADGE: AUTHORIZED CHECKPOINT INSPECTOR</Text>
+          <Text style={styles.seal}>ได้รับการยืนยันตัวตนในระบบเรียบร้อยแล้ว</Text>
         </View>
       </View>
 
       <PrimaryButton
-        title="SIGN OUT OF COMMAND POST"
+        title="ออกจากระบบ"
         variant="danger"
         onPress={handleLogout}
         style={{ marginTop: 24 }}

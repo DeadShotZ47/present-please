@@ -19,8 +19,8 @@ export default function AuthLayout() {
         },
       }}
     >
-      <Stack.Screen name="login" options={{ title: 'CHECKPOINT LOGIN', headerShown: false }} />
-      <Stack.Screen name="register" options={{ title: 'NEW IDENTIFICATION REGISTRATION' }} />
+      <Stack.Screen name="login" options={{ title: 'เข้าสู่ระบบ', headerShown: false }} />
+      <Stack.Screen name="register" options={{ title: 'ลงทะเบียนบัญชีใหม่' }} />
     </Stack>
   );
 }
