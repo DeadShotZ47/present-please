@@ -24,8 +24,27 @@ const VISIBLE_ITEMS = 5;
 const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 220px
 const PADDING_COUNT = 2; // (5 - 1) / 2 = 2 items padding above and below center
 
-const HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-const MINUTES = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
+// Infinite loop setup: repeat items across multiple cycles
+const CYCLES = 15;
+const CENTER_CYCLE = 7;
+
+const BASE_HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+const BASE_MINUTES = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
+
+// Build looped arrays: 23:00 seamlessly connects to 00:00, 59 seamlessly connects to 00
+const LOOPED_HOURS: string[] = [];
+for (let c = 0; c < CYCLES; c++) {
+  for (let h = 0; h < 24; h++) {
+    LOOPED_HOURS.push(BASE_HOURS[h]);
+  }
+}
+
+const LOOPED_MINUTES: string[] = [];
+for (let c = 0; c < CYCLES; c++) {
+  for (let m = 0; m < 60; m++) {
+    LOOPED_MINUTES.push(BASE_MINUTES[m]);
+  }
+}
 
 const PRESETS = [
   '08:30',
@@ -55,26 +74,28 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
   const hourScrollRef = useRef<ScrollView>(null);
   const minuteScrollRef = useRef<ScrollView>(null);
 
-  // Sync state and scroll position when modal opens or initialTime changes
+  // Position wheels at center cycle when modal opens
   useEffect(() => {
     if (visible && initialTime && initialTime.includes(':')) {
-      const [h, m] = initialTime.split(':');
-      const hourStr = h.padStart(2, '0');
-      const minStr = m.padStart(2, '0');
+      const [hStr, mStr] = initialTime.split(':');
+      const h = parseInt(hStr, 10);
+      const m = parseInt(mStr, 10);
+      const safeH = isNaN(h) ? 9 : Math.min(23, Math.max(0, h));
+      const safeM = isNaN(m) ? 0 : Math.min(59, Math.max(0, m));
 
-      setSelectedHour(hourStr);
-      setSelectedMinute(minStr);
+      setSelectedHour(safeH.toString().padStart(2, '0'));
+      setSelectedMinute(safeM.toString().padStart(2, '0'));
 
-      const hourIdx = Math.max(0, HOURS.indexOf(hourStr));
-      const minIdx = Math.max(0, MINUTES.indexOf(minStr));
+      const targetHIdx = CENTER_CYCLE * 24 + safeH;
+      const targetMIdx = CENTER_CYCLE * 60 + safeM;
 
       const timer = setTimeout(() => {
         hourScrollRef.current?.scrollTo({
-          y: hourIdx * ITEM_HEIGHT,
+          y: targetHIdx * ITEM_HEIGHT,
           animated: false,
         });
         minuteScrollRef.current?.scrollTo({
-          y: minIdx * ITEM_HEIGHT,
+          y: targetMIdx * ITEM_HEIGHT,
           animated: false,
         });
       }, 60);
@@ -85,51 +106,93 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
 
   const handleHourScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = e.nativeEvent.contentOffset.y;
-    const idx = Math.min(Math.max(0, Math.round(y / ITEM_HEIGHT)), HOURS.length - 1);
-    setSelectedHour(HOURS[idx]);
+    const rawIdx = Math.round(y / ITEM_HEIGHT);
+    const normalizedHour = ((rawIdx % 24) + 24) % 24;
+    const hourStr = normalizedHour.toString().padStart(2, '0');
+    setSelectedHour(hourStr);
+
+    // Silently reset back to CENTER_CYCLE to maintain infinite loop
+    const centerIdx = CENTER_CYCLE * 24 + normalizedHour;
+    if (rawIdx !== centerIdx) {
+      hourScrollRef.current?.scrollTo({
+        y: centerIdx * ITEM_HEIGHT,
+        animated: false,
+      });
+    }
   };
 
   const handleMinuteScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = e.nativeEvent.contentOffset.y;
-    const idx = Math.min(Math.max(0, Math.round(y / ITEM_HEIGHT)), MINUTES.length - 1);
-    setSelectedMinute(MINUTES[idx]);
+    const rawIdx = Math.round(y / ITEM_HEIGHT);
+    const normalizedMin = ((rawIdx % 60) + 60) % 60;
+    const minStr = normalizedMin.toString().padStart(2, '0');
+    setSelectedMinute(minStr);
+
+    // Silently reset back to CENTER_CYCLE to maintain infinite loop
+    const centerIdx = CENTER_CYCLE * 60 + normalizedMin;
+    if (rawIdx !== centerIdx) {
+      minuteScrollRef.current?.scrollTo({
+        y: centerIdx * ITEM_HEIGHT,
+        animated: false,
+      });
+    }
   };
 
-  const scrollToHour = (idx: number) => {
+  const handlePressHour = (globalIndex: number) => {
+    const normalizedHour = ((globalIndex % 24) + 24) % 24;
     hourScrollRef.current?.scrollTo({
-      y: idx * ITEM_HEIGHT,
+      y: globalIndex * ITEM_HEIGHT,
       animated: true,
     });
-    setSelectedHour(HOURS[idx]);
+    setSelectedHour(normalizedHour.toString().padStart(2, '0'));
   };
 
-  const scrollToMinute = (idx: number) => {
+  const handlePressMinute = (globalIndex: number) => {
+    const normalizedMin = ((globalIndex % 60) + 60) % 60;
     minuteScrollRef.current?.scrollTo({
-      y: idx * ITEM_HEIGHT,
+      y: globalIndex * ITEM_HEIGHT,
       animated: true,
     });
-    setSelectedMinute(MINUTES[idx]);
+    setSelectedMinute(normalizedMin.toString().padStart(2, '0'));
   };
 
   const handleSetCurrentTime = () => {
     const now = new Date();
-    const hStr = now.getHours().toString().padStart(2, '0');
-    const mStr = now.getMinutes().toString().padStart(2, '0');
+    const h = now.getHours();
+    const m = now.getMinutes();
 
-    const hIdx = Math.max(0, HOURS.indexOf(hStr));
-    const mIdx = Math.max(0, MINUTES.indexOf(mStr));
+    const targetHIdx = CENTER_CYCLE * 24 + h;
+    const targetMIdx = CENTER_CYCLE * 60 + m;
 
-    scrollToHour(hIdx);
-    scrollToMinute(mIdx);
+    setSelectedHour(h.toString().padStart(2, '0'));
+    setSelectedMinute(m.toString().padStart(2, '0'));
+
+    hourScrollRef.current?.scrollTo({
+      y: targetHIdx * ITEM_HEIGHT,
+      animated: true,
+    });
+    minuteScrollRef.current?.scrollTo({
+      y: targetMIdx * ITEM_HEIGHT,
+      animated: true,
+    });
   };
 
   const handleSelectPreset = (presetTime: string) => {
-    const [h, m] = presetTime.split(':');
-    const hIdx = Math.max(0, HOURS.indexOf(h));
-    const mIdx = Math.max(0, MINUTES.indexOf(m));
+    const [h, m] = presetTime.split(':').map(Number);
+    const targetHIdx = CENTER_CYCLE * 24 + h;
+    const targetMIdx = CENTER_CYCLE * 60 + m;
 
-    scrollToHour(hIdx);
-    scrollToMinute(mIdx);
+    setSelectedHour(h.toString().padStart(2, '0'));
+    setSelectedMinute(m.toString().padStart(2, '0'));
+
+    hourScrollRef.current?.scrollTo({
+      y: targetHIdx * ITEM_HEIGHT,
+      animated: true,
+    });
+    minuteScrollRef.current?.scrollTo({
+      y: targetMIdx * ITEM_HEIGHT,
+      animated: true,
+    });
   };
 
   const handleConfirm = () => {
@@ -150,7 +213,7 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
           <View style={styles.header}>
             <View>
               <Text style={styles.title}>{title}</Text>
-              <Text style={styles.subtitle}>เลื่อนขึ้น-ลง เพื่อหมุนเลือกตัวเลข</Text>
+              <Text style={styles.subtitle}>หมุนวนแบบลูป (23 → 00) เลื่อนขึ้น-ลงได้ต่อเนื่อง</Text>
             </View>
             <TouchableOpacity
               onPress={onClose}
@@ -172,6 +235,21 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
             </TouchableOpacity>
           </View>
 
+          {/* Column Headers: Exactly aligned with the two wheels below */}
+          <View style={styles.colHeadersRow}>
+            <View style={styles.colHeaderBox}>
+              <View style={styles.headerTag}>
+                <Text style={styles.colHeaderTitle}>ชั่วโมง (00 - 23)</Text>
+              </View>
+            </View>
+            <View style={styles.colonHeaderSpacer} />
+            <View style={styles.colHeaderBox}>
+              <View style={styles.headerTag}>
+                <Text style={styles.colHeaderTitle}>นาที (00 - 59)</Text>
+              </View>
+            </View>
+          </View>
+
           {/* Wheel Picker Container */}
           <View style={styles.wheelWrapper}>
             {/* Center Selection Lens / Active Band Highlight */}
@@ -180,16 +258,9 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
               <View style={styles.lensLineBottom} />
             </View>
 
-            {/* Column Headers */}
-            <View style={styles.colHeadersRow}>
-              <Text style={styles.colHeaderTitle}>ชั่วโมง</Text>
-              <View style={{ width: 30 }} />
-              <Text style={styles.colHeaderTitle}>นาที</Text>
-            </View>
-
-            {/* Wheels Columns */}
+            {/* Wheels Row */}
             <View style={styles.wheelsRow}>
-              {/* Hours Wheel */}
+              {/* Hours Column (Infinite Loop) */}
               <View style={styles.wheelColumn}>
                 <ScrollView
                   ref={hourScrollRef}
@@ -201,16 +272,16 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
                   onScrollEndDrag={handleHourScrollEnd}
                   contentContainerStyle={styles.wheelScrollContent}
                 >
-                  {/* Top Spacer to center the first item */}
+                  {/* Top Spacer to align item in center lens */}
                   <View style={{ height: ITEM_HEIGHT * PADDING_COUNT }} />
 
-                  {HOURS.map((h, index) => {
+                  {LOOPED_HOURS.map((h, index) => {
                     const isSelected = selectedHour === h;
                     return (
                       <TouchableOpacity
-                        key={h}
+                        key={`${h}-${index}`}
                         style={styles.wheelItem}
-                        onPress={() => scrollToHour(index)}
+                        onPress={() => handlePressHour(index)}
                         activeOpacity={0.7}
                       >
                         <Text
@@ -225,7 +296,7 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
                     );
                   })}
 
-                  {/* Bottom Spacer to center the last item */}
+                  {/* Bottom Spacer */}
                   <View style={{ height: ITEM_HEIGHT * PADDING_COUNT }} />
                 </ScrollView>
               </View>
@@ -235,7 +306,7 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
                 <Text style={styles.colonText}>:</Text>
               </View>
 
-              {/* Minutes Wheel */}
+              {/* Minutes Column (Infinite Loop) */}
               <View style={styles.wheelColumn}>
                 <ScrollView
                   ref={minuteScrollRef}
@@ -250,13 +321,13 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
                   {/* Top Spacer */}
                   <View style={{ height: ITEM_HEIGHT * PADDING_COUNT }} />
 
-                  {MINUTES.map((m, index) => {
+                  {LOOPED_MINUTES.map((m, index) => {
                     const isSelected = selectedMinute === m;
                     return (
                       <TouchableOpacity
-                        key={m}
+                        key={`${m}-${index}`}
                         style={styles.wheelItem}
-                        onPress={() => scrollToMinute(index)}
+                        onPress={() => handlePressMinute(index)}
                         activeOpacity={0.7}
                       >
                         <Text
@@ -382,7 +453,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   summaryLabel: {
     fontSize: 11,
@@ -413,6 +484,33 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.inkDark,
   },
+  colHeadersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  colHeaderBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTag: {
+    backgroundColor: Colors.panelBackground,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 3,
+  },
+  colonHeaderSpacer: {
+    width: 34, // Exact match to colonContainer
+  },
+  colHeaderTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.inkDark,
+    letterSpacing: 0.5,
+  },
   wheelWrapper: {
     height: WHEEL_HEIGHT,
     backgroundColor: '#FAF9F5',
@@ -421,23 +519,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     position: 'relative',
     overflow: 'hidden',
-  },
-  colHeadersRow: {
-    position: 'absolute',
-    top: 6,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    zIndex: 10,
-    pointerEvents: 'none',
-  },
-  colHeaderTitle: {
-    fontSize: 9,
-    fontWeight: '900',
-    color: Colors.inkFaint,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
   },
   selectionLens: {
     position: 'absolute',
@@ -495,7 +576,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   colonContainer: {
-    width: 30,
+    width: 34,
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
