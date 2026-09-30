@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import Colors from '../constants/Colors';
 
@@ -17,16 +19,19 @@ interface TimePickerModalProps {
   onClose: () => void;
 }
 
+const ITEM_HEIGHT = 44;
+const VISIBLE_ITEMS = 5;
+const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 220px
+const PADDING_COUNT = 2; // (5 - 1) / 2 = 2 items padding above and below center
+
 const HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
+const MINUTES = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
 
 const PRESETS = [
-  '08:00',
   '08:30',
   '09:00',
   '09:30',
   '10:00',
-  '10:30',
   '11:00',
   '12:00',
   '13:00',
@@ -46,41 +51,89 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
 }) => {
   const [selectedHour, setSelectedHour] = useState('09');
   const [selectedMinute, setSelectedMinute] = useState('00');
-  const [activeTab, setActiveTab] = useState<'hour' | 'minute'>('hour');
 
+  const hourScrollRef = useRef<ScrollView>(null);
+  const minuteScrollRef = useRef<ScrollView>(null);
+
+  // Sync state and scroll position when modal opens or initialTime changes
   useEffect(() => {
-    if (initialTime && initialTime.includes(':')) {
+    if (visible && initialTime && initialTime.includes(':')) {
       const [h, m] = initialTime.split(':');
-      setSelectedHour(h.padStart(2, '0'));
-      setSelectedMinute(m.padStart(2, '0'));
+      const hourStr = h.padStart(2, '0');
+      const minStr = m.padStart(2, '0');
+
+      setSelectedHour(hourStr);
+      setSelectedMinute(minStr);
+
+      const hourIdx = Math.max(0, HOURS.indexOf(hourStr));
+      const minIdx = Math.max(0, MINUTES.indexOf(minStr));
+
+      const timer = setTimeout(() => {
+        hourScrollRef.current?.scrollTo({
+          y: hourIdx * ITEM_HEIGHT,
+          animated: false,
+        });
+        minuteScrollRef.current?.scrollTo({
+          y: minIdx * ITEM_HEIGHT,
+          animated: false,
+        });
+      }, 60);
+
+      return () => clearTimeout(timer);
     }
-  }, [initialTime, visible]);
+  }, [visible, initialTime]);
+
+  const handleHourScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const idx = Math.min(Math.max(0, Math.round(y / ITEM_HEIGHT)), HOURS.length - 1);
+    setSelectedHour(HOURS[idx]);
+  };
+
+  const handleMinuteScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const idx = Math.min(Math.max(0, Math.round(y / ITEM_HEIGHT)), MINUTES.length - 1);
+    setSelectedMinute(MINUTES[idx]);
+  };
+
+  const scrollToHour = (idx: number) => {
+    hourScrollRef.current?.scrollTo({
+      y: idx * ITEM_HEIGHT,
+      animated: true,
+    });
+    setSelectedHour(HOURS[idx]);
+  };
+
+  const scrollToMinute = (idx: number) => {
+    minuteScrollRef.current?.scrollTo({
+      y: idx * ITEM_HEIGHT,
+      animated: true,
+    });
+    setSelectedMinute(MINUTES[idx]);
+  };
 
   const handleSetCurrentTime = () => {
     const now = new Date();
-    setSelectedHour(now.getHours().toString().padStart(2, '0'));
-    // Round to nearest 5 minutes
-    const rawMin = now.getMinutes();
-    const roundedMin = (Math.round(rawMin / 5) * 5) % 60;
-    setSelectedMinute(roundedMin.toString().padStart(2, '0'));
+    const hStr = now.getHours().toString().padStart(2, '0');
+    const mStr = now.getMinutes().toString().padStart(2, '0');
+
+    const hIdx = Math.max(0, HOURS.indexOf(hStr));
+    const mIdx = Math.max(0, MINUTES.indexOf(mStr));
+
+    scrollToHour(hIdx);
+    scrollToMinute(mIdx);
   };
 
-  const handleSelectPreset = (timeStr: string) => {
-    const [h, m] = timeStr.split(':');
-    setSelectedHour(h);
-    setSelectedMinute(m);
-  };
+  const handleSelectPreset = (presetTime: string) => {
+    const [h, m] = presetTime.split(':');
+    const hIdx = Math.max(0, HOURS.indexOf(h));
+    const mIdx = Math.max(0, MINUTES.indexOf(m));
 
-  const adjustMinute = (delta: number) => {
-    let m = parseInt(selectedMinute, 10) + delta;
-    if (m < 0) m = 59;
-    if (m > 59) m = 0;
-    setSelectedMinute(m.toString().padStart(2, '0'));
+    scrollToHour(hIdx);
+    scrollToMinute(mIdx);
   };
 
   const handleConfirm = () => {
-    const formatted = `${selectedHour}:${selectedMinute}`;
-    onConfirm(formatted);
+    onConfirm(`${selectedHour}:${selectedMinute}`);
     onClose();
   };
 
@@ -92,155 +145,178 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
+        <View style={styles.modalCard}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-            <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <View>
+              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.subtitle}>เลื่อนขึ้น-ลง เพื่อหมุนเลือกตัวเลข</Text>
+            </View>
+            <TouchableOpacity
+              onPress={onClose}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              style={styles.closeBtn}
+            >
               <Text style={styles.closeIcon}>✕</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Big Time Display */}
-          <View style={styles.timeDisplayBox}>
-            <TouchableOpacity
-              style={[
-                styles.timeBox,
-                activeTab === 'hour' && styles.timeBoxActive,
-              ]}
-              onPress={() => setActiveTab('hour')}
-            >
-              <Text style={[styles.timeDigit, activeTab === 'hour' && styles.timeDigitActive]}>
-                {selectedHour}
-              </Text>
-              <Text style={styles.timeUnitLabel}>ชั่วโมง</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.colon}>:</Text>
-
-            <TouchableOpacity
-              style={[
-                styles.timeBox,
-                activeTab === 'minute' && styles.timeBoxActive,
-              ]}
-              onPress={() => setActiveTab('minute')}
-            >
-              <Text style={[styles.timeDigit, activeTab === 'minute' && styles.timeDigitActive]}>
-                {selectedMinute}
-              </Text>
-              <Text style={styles.timeUnitLabel}>นาที</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.thaiUnit}>น.</Text>
-          </View>
-
-          {/* Tab Selector */}
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'hour' && styles.tabActive]}
-              onPress={() => setActiveTab('hour')}
-            >
-              <Text style={[styles.tabText, activeTab === 'hour' && styles.tabTextActive]}>
-                เลือกชั่วโมง (00 - 23)
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'minute' && styles.tabActive]}
-              onPress={() => setActiveTab('minute')}
-            >
-              <Text style={[styles.tabText, activeTab === 'minute' && styles.tabTextActive]}>
-                เลือกนาที (00 - 55)
-              </Text>
+          {/* Current Selection Bar */}
+          <View style={styles.selectionSummary}>
+            <Text style={styles.summaryLabel}>เวลาที่เลือก:</Text>
+            <Text style={styles.summaryTime}>
+              {selectedHour}:{selectedMinute} <Text style={styles.summaryUnit}>น.</Text>
+            </Text>
+            <TouchableOpacity style={styles.nowBtn} onPress={handleSetCurrentTime}>
+              <Text style={styles.nowBtnText}>🕒 ใช้เวลาปัจจุบัน</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Selector Grid */}
-          {activeTab === 'hour' ? (
-            <ScrollView style={styles.gridScroll} contentContainerStyle={styles.gridContainer}>
-              {HOURS.map((h) => {
-                const isSelected = selectedHour === h;
+          {/* Wheel Picker Container */}
+          <View style={styles.wheelWrapper}>
+            {/* Center Selection Lens / Active Band Highlight */}
+            <View style={styles.selectionLens} pointerEvents="none">
+              <View style={styles.lensLineTop} />
+              <View style={styles.lensLineBottom} />
+            </View>
+
+            {/* Column Headers */}
+            <View style={styles.colHeadersRow}>
+              <Text style={styles.colHeaderTitle}>ชั่วโมง</Text>
+              <View style={{ width: 30 }} />
+              <Text style={styles.colHeaderTitle}>นาที</Text>
+            </View>
+
+            {/* Wheels Columns */}
+            <View style={styles.wheelsRow}>
+              {/* Hours Wheel */}
+              <View style={styles.wheelColumn}>
+                <ScrollView
+                  ref={hourScrollRef}
+                  showsVerticalScrollIndicator={false}
+                  snapToInterval={ITEM_HEIGHT}
+                  decelerationRate="fast"
+                  bounces={false}
+                  onMomentumScrollEnd={handleHourScrollEnd}
+                  onScrollEndDrag={handleHourScrollEnd}
+                  contentContainerStyle={styles.wheelScrollContent}
+                >
+                  {/* Top Spacer to center the first item */}
+                  <View style={{ height: ITEM_HEIGHT * PADDING_COUNT }} />
+
+                  {HOURS.map((h, index) => {
+                    const isSelected = selectedHour === h;
+                    return (
+                      <TouchableOpacity
+                        key={h}
+                        style={styles.wheelItem}
+                        onPress={() => scrollToHour(index)}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.wheelItemText,
+                            isSelected && styles.wheelItemTextSelected,
+                          ]}
+                        >
+                          {h}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+
+                  {/* Bottom Spacer to center the last item */}
+                  <View style={{ height: ITEM_HEIGHT * PADDING_COUNT }} />
+                </ScrollView>
+              </View>
+
+              {/* Colon Separator */}
+              <View style={styles.colonContainer} pointerEvents="none">
+                <Text style={styles.colonText}>:</Text>
+              </View>
+
+              {/* Minutes Wheel */}
+              <View style={styles.wheelColumn}>
+                <ScrollView
+                  ref={minuteScrollRef}
+                  showsVerticalScrollIndicator={false}
+                  snapToInterval={ITEM_HEIGHT}
+                  decelerationRate="fast"
+                  bounces={false}
+                  onMomentumScrollEnd={handleMinuteScrollEnd}
+                  onScrollEndDrag={handleMinuteScrollEnd}
+                  contentContainerStyle={styles.wheelScrollContent}
+                >
+                  {/* Top Spacer */}
+                  <View style={{ height: ITEM_HEIGHT * PADDING_COUNT }} />
+
+                  {MINUTES.map((m, index) => {
+                    const isSelected = selectedMinute === m;
+                    return (
+                      <TouchableOpacity
+                        key={m}
+                        style={styles.wheelItem}
+                        onPress={() => scrollToMinute(index)}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.wheelItemText,
+                            isSelected && styles.wheelItemTextSelected,
+                          ]}
+                        >
+                          {m}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+
+                  {/* Bottom Spacer */}
+                  <View style={{ height: ITEM_HEIGHT * PADDING_COUNT }} />
+                </ScrollView>
+              </View>
+            </View>
+          </View>
+
+          {/* Quick Presets Slider */}
+          <View style={styles.presetsSection}>
+            <Text style={styles.presetsTitle}>เวลาเริ่มเรียนยอดนิยม:</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.presetsList}
+            >
+              {PRESETS.map((preset) => {
+                const isActive = `${selectedHour}:${selectedMinute}` === preset;
                 return (
                   <TouchableOpacity
-                    key={h}
-                    style={[styles.gridItem, isSelected && styles.gridItemActive]}
-                    onPress={() => {
-                      setSelectedHour(h);
-                      setActiveTab('minute'); // Auto switch to minute for smooth flow
-                    }}
+                    key={preset}
+                    style={[styles.presetChip, isActive && styles.presetChipActive]}
+                    onPress={() => handleSelectPreset(preset)}
                   >
-                    <Text style={[styles.gridItemText, isSelected && styles.gridItemTextActive]}>
-                      {h}
+                    <Text
+                      style={[
+                        styles.presetChipText,
+                        isActive && styles.presetChipTextActive,
+                      ]}
+                    >
+                      {preset}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
-          ) : (
-            <View>
-              <ScrollView style={styles.gridScroll} contentContainerStyle={styles.gridContainer}>
-                {MINUTES.map((m) => {
-                  const isSelected = selectedMinute === m;
-                  return (
-                    <TouchableOpacity
-                      key={m}
-                      style={[styles.gridItem, isSelected && styles.gridItemActive]}
-                      onPress={() => setSelectedMinute(m)}
-                    >
-                      <Text style={[styles.gridItemText, isSelected && styles.gridItemTextActive]}>
-                        :{m}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-              {/* Stepper for fine-tuning minute */}
-              <View style={styles.stepperRow}>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => adjustMinute(-1)}>
-                  <Text style={styles.stepBtnText}>- 1 นาที</Text>
-                </TouchableOpacity>
-                <Text style={styles.minuteFineText}>ปรับละเอียด: {selectedMinute} นาที</Text>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => adjustMinute(1)}>
-                  <Text style={styles.stepBtnText}>+ 1 นาที</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* Quick presets & Current Time */}
-          <View style={styles.presetSection}>
-            <View style={styles.presetHeader}>
-              <Text style={styles.presetTitle}>เวลากลาง / เวลาด่วน:</Text>
-              <TouchableOpacity style={styles.nowBtn} onPress={handleSetCurrentTime}>
-                <Text style={styles.nowBtnText}>🕒 ใช้เวลาปัจจุบัน</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetsList}>
-              {PRESETS.map((p) => (
-                <TouchableOpacity
-                  key={p}
-                  style={[styles.presetChip, `${selectedHour}:${selectedMinute}` === p && styles.presetChipActive]}
-                  onPress={() => handleSelectPreset(p)}
-                >
-                  <Text
-                    style={[
-                      styles.presetChipText,
-                      `${selectedHour}:${selectedMinute}` === p && styles.presetChipTextActive,
-                    ]}
-                  >
-                    {p}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
           </View>
 
-          {/* Actions */}
+          {/* Action Buttons */}
           <View style={styles.footerRow}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
               <Text style={styles.cancelBtnText}>ยกเลิก</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
-              <Text style={styles.confirmBtnText}>ยืนยันเวลา ({selectedHour}:{selectedMinute} น.)</Text>
+              <Text style={styles.confirmBtnText}>
+                ยืนยันเวลา ({selectedHour}:{selectedMinute} น.)
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -257,212 +333,200 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
-  modalContainer: {
+  modalCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 2,
     borderColor: Colors.inkDark,
     width: '100%',
     maxWidth: 380,
-    maxHeight: '90%',
     padding: 18,
     shadowColor: Colors.inkDark,
     shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 0,
     elevation: 6,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    alignItems: 'flex-start',
+    marginBottom: 10,
   },
   title: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '900',
     color: Colors.inkDark,
     letterSpacing: 0.8,
+  },
+  subtitle: {
+    fontSize: 11,
+    color: Colors.inkMuted,
+    marginTop: 2,
+  },
+  closeBtn: {
+    padding: 4,
   },
   closeIcon: {
     fontSize: 18,
     fontWeight: '900',
     color: Colors.inkMuted,
-    padding: 4,
   },
-  timeDisplayBox: {
+  selectionSummary: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: Colors.panelBackground,
     borderWidth: 1.5,
     borderColor: Colors.inkDark,
-    borderRadius: 6,
-    paddingVertical: 12,
-    marginBottom: 14,
-  },
-  timeBox: {
-    paddingHorizontal: 16,
+    borderRadius: 5,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    alignItems: 'center',
-  },
-  timeBoxActive: {
-    backgroundColor: Colors.cardBackground,
-    borderColor: Colors.inkDark,
-  },
-  timeDigit: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: Colors.inkMuted,
-    letterSpacing: 2,
-  },
-  timeDigitActive: {
-    color: Colors.inkDark,
-  },
-  timeUnitLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Colors.inkMuted,
-    marginTop: 2,
-  },
-  colon: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: Colors.inkDark,
-    marginHorizontal: 4,
-  },
-  thaiUnit: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: Colors.inkDark,
-    marginLeft: 8,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    borderWidth: 1.5,
-    borderColor: Colors.inkDark,
-    borderRadius: 4,
-    overflow: 'hidden',
     marginBottom: 12,
   },
-  tab: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    backgroundColor: '#F5F5F0',
-  },
-  tabActive: {
-    backgroundColor: Colors.inkDark,
-  },
-  tabText: {
+  summaryLabel: {
     fontSize: 11,
     fontWeight: '800',
     color: Colors.inkMuted,
   },
-  tabTextActive: {
-    color: '#FFFFFF',
-  },
-  gridScroll: {
-    maxHeight: 150,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'center',
-    paddingVertical: 4,
-  },
-  gridItem: {
-    width: 48,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F0',
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    borderRadius: 4,
-  },
-  gridItemActive: {
-    backgroundColor: Colors.stampBlue,
-    borderColor: Colors.inkDark,
-  },
-  gridItemText: {
-    fontSize: 14,
-    fontWeight: '800',
+  summaryTime: {
+    fontSize: 18,
+    fontWeight: '900',
     color: Colors.inkDark,
+    letterSpacing: 1,
   },
-  gridItemTextActive: {
-    color: '#FFFFFF',
-  },
-  stepperRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
-    paddingHorizontal: 8,
-  },
-  stepBtn: {
-    backgroundColor: '#EFEFEA',
-    borderWidth: 1,
-    borderColor: Colors.inkDark,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  stepBtnText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.inkDark,
-  },
-  minuteFineText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.inkMuted,
-  },
-  presetSection: {
-    marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderColor: Colors.borderLight,
-  },
-  presetHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  presetTitle: {
-    fontSize: 10,
+  summaryUnit: {
+    fontSize: 13,
     fontWeight: '800',
     color: Colors.inkMuted,
-    letterSpacing: 0.5,
   },
   nowBtn: {
-    backgroundColor: Colors.panelBackground,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: Colors.inkDark,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
     borderRadius: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   nowBtnText: {
     fontSize: 10,
     fontWeight: '800',
     color: Colors.inkDark,
   },
+  wheelWrapper: {
+    height: WHEEL_HEIGHT,
+    backgroundColor: '#FAF9F5',
+    borderWidth: 1.5,
+    borderColor: Colors.inkDark,
+    borderRadius: 6,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  colHeadersRow: {
+    position: 'absolute',
+    top: 6,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    zIndex: 10,
+    pointerEvents: 'none',
+  },
+  colHeaderTitle: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: Colors.inkFaint,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  selectionLens: {
+    position: 'absolute',
+    top: ITEM_HEIGHT * PADDING_COUNT, // 88px (centered at 3rd slot)
+    left: 0,
+    right: 0,
+    height: ITEM_HEIGHT,
+    backgroundColor: 'rgba(21, 57, 102, 0.08)',
+    zIndex: 2,
+  },
+  lensLineTop: {
+    position: 'absolute',
+    top: 0,
+    left: 12,
+    right: 12,
+    height: 1.5,
+    backgroundColor: Colors.inkDark,
+  },
+  lensLineBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 12,
+    right: 12,
+    height: 1.5,
+    backgroundColor: Colors.inkDark,
+  },
+  wheelsRow: {
+    flexDirection: 'row',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  wheelColumn: {
+    flex: 1,
+    height: '100%',
+  },
+  wheelScrollContent: {
+    alignItems: 'center',
+  },
+  wheelItem: {
+    height: ITEM_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  wheelItemText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#999990',
+  },
+  wheelItemTextSelected: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: Colors.inkDark,
+    letterSpacing: 1,
+  },
+  colonContainer: {
+    width: 30,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 3,
+  },
+  colonText: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: Colors.inkDark,
+    marginBottom: 4,
+  },
+  presetsSection: {
+    marginTop: 12,
+  },
+  presetsTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.inkMuted,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
   presetsList: {
     gap: 6,
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   presetChip: {
     backgroundColor: '#F5F5F0',
     borderWidth: 1,
     borderColor: Colors.borderLight,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: 4,
   },
   presetChipActive: {
