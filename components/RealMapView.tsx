@@ -1,5 +1,14 @@
-import React, { useRef, useEffect, useMemo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import React, { useRef, useState, useMemo } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  Modal,
+  SafeAreaView,
+  StatusBar,
+} from 'react-native';
 import { WebView } from 'react-native-webview';
 import Colors from '../constants/Colors';
 
@@ -32,9 +41,11 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
   showControls = true,
 }) => {
   const webViewRef = useRef<WebView>(null);
+  const fullScreenWebViewRef = useRef<WebView>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
-  // Generate HTML for Leaflet & OpenStreetMap
-  const mapHtml = useMemo(() => {
+  // Helper to generate Leaflet HTML
+  const generateMapHtml = (enableZoomControl: boolean) => {
     const classLat = classroomCoords.latitude;
     const classLng = classroomCoords.longitude;
     const hasUser = !!userCoords;
@@ -50,7 +61,7 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
 <html>
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     * { box-sizing: border-box; }
@@ -147,14 +158,21 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
       color: #5A6065;
     }
     .distance-label {
-      background: rgba(30, 32, 34, 0.85);
+      background: rgba(30, 32, 34, 0.88);
       color: #F4F1EA;
-      padding: 2px 6px;
+      padding: 3px 7px;
       border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 800;
       border: 1px solid #DED8CB;
       white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+    .leaflet-control-zoom a {
+      background: #F4F1EA !important;
+      color: #1E2022 !important;
+      border: 1.5px solid #1E2022 !important;
+      font-weight: 900 !important;
     }
   </style>
 </head>
@@ -173,7 +191,7 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
 
     // Init Leaflet map
     var map = L.map('map', {
-      zoomControl: false,
+      zoomControl: ${enableZoomControl},
       attributionControl: false
     });
 
@@ -189,8 +207,8 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
               '<div class="classroom-badge">' + roomName + '</div>' +
               '<div class="classroom-icon">🏫</div>' +
             '</div>',
-      iconSize: [80, 56],
-      iconAnchor: [40, 54],
+      iconSize: [90, 56],
+      iconAnchor: [45, 54],
       popupAnchor: [0, -50]
     });
 
@@ -204,7 +222,7 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
     var radiusCircle = L.circle([classLat, classLng], {
       radius: radius,
       color: circleColor,
-      weight: 2,
+      weight: 2.5,
       dashArray: '5, 5',
       fillColor: circleFill,
       fillOpacity: 0.16
@@ -224,8 +242,8 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
                 '<div class="user-badge">คุณอยู่ที่นี่</div>' +
                 '<div class="' + userDotClass + '"></div>' +
               '</div>',
-        iconSize: [70, 42],
-        iconAnchor: [35, 38],
+        iconSize: [80, 42],
+        iconAnchor: [40, 38],
         popupAnchor: [0, -36]
       });
 
@@ -245,9 +263,9 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
       // Polyline between student and classroom
       connectLine = L.polyline([[userLat, userLng], [classLat, classLng]], {
         color: isWithin ? '#1E633F' : '#962A20',
-        weight: 2.5,
+        weight: 3,
         dashArray: '6, 6',
-        opacity: 0.8
+        opacity: 0.85
       }).addTo(map);
 
       ${distText ? `
@@ -256,15 +274,15 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
       var distIcon = L.divIcon({
         className: '',
         html: '<div class="distance-label">📍 ${distText}</div>',
-        iconSize: [60, 20],
-        iconAnchor: [30, 10]
+        iconSize: [70, 24],
+        iconAnchor: [35, 12]
       });
       distMarker = L.marker([midLat, midLng], { icon: distIcon }).addTo(map);
       ` : ''}
 
       // Fit bounds to show both classroom and student
       var bounds = L.latLngBounds([[classLat, classLng], [userLat, userLng]]);
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 18 });
     } else {
       // Center on classroom
       map.setView([classLat, classLng], 17);
@@ -286,7 +304,7 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
     window.fitAll = function() {
       if (hasUser) {
         var b = L.latLngBounds([[classLat, classLng], [userLat, userLng]]);
-        map.fitBounds(b, { padding: [50, 50], maxZoom: 18 });
+        map.fitBounds(b, { padding: [60, 60], maxZoom: 18 });
       } else {
         map.setView([classLat, classLng], 17);
       }
@@ -294,7 +312,9 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
   </script>
 </body>
 </html>`;
-  }, [
+  };
+
+  const mapHtml = useMemo(() => generateMapHtml(false), [
     classroomCoords.latitude,
     classroomCoords.longitude,
     classroomName,
@@ -306,16 +326,31 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
     isWithinRadius,
   ]);
 
-  const handleCenterClassroom = () => {
-    webViewRef.current?.injectJavaScript('window.centerClassroom && window.centerClassroom(); true;');
+  const fullScreenMapHtml = useMemo(() => generateMapHtml(true), [
+    classroomCoords.latitude,
+    classroomCoords.longitude,
+    classroomName,
+    allowedRadius,
+    userCoords?.latitude,
+    userCoords?.longitude,
+    userAccuracy,
+    distance,
+    isWithinRadius,
+  ]);
+
+  const handleCenterClassroom = (isFull: boolean = false) => {
+    const targetRef = isFull ? fullScreenWebViewRef : webViewRef;
+    targetRef.current?.injectJavaScript('window.centerClassroom && window.centerClassroom(); true;');
   };
 
-  const handleCenterUser = () => {
-    webViewRef.current?.injectJavaScript('window.centerUser && window.centerUser(); true;');
+  const handleCenterUser = (isFull: boolean = false) => {
+    const targetRef = isFull ? fullScreenWebViewRef : webViewRef;
+    targetRef.current?.injectJavaScript('window.centerUser && window.centerUser(); true;');
   };
 
-  const handleFitAll = () => {
-    webViewRef.current?.injectJavaScript('window.fitAll && window.fitAll(); true;');
+  const handleFitAll = (isFull: boolean = false) => {
+    const targetRef = isFull ? fullScreenWebViewRef : webViewRef;
+    targetRef.current?.injectJavaScript('window.fitAll && window.fitAll(); true;');
   };
 
   return (
@@ -343,10 +378,19 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
             {userCoords
               ? isWithinRadius
                 ? `✓ อยู่ในระยะ (${distance !== null ? distance : 0} ม.)`
-                : `✕ อยู่นอกระยะ (${distance !== null ? distance : 0} ม. / รัศมี ${allowedRadius} ม.)`
-              : `📍 รัศมีห้องเรียน ${allowedRadius} ม.`}
+                : `✕ อยู่นอกระยะ (${distance !== null ? distance : 0} ม. / ${allowedRadius} ม.)`
+              : `📍 รัศมี ${allowedRadius} ม.`}
           </Text>
         </View>
+
+        {/* Fullscreen Expand Button at top right */}
+        <TouchableOpacity
+          style={styles.expandTopBtn}
+          onPress={() => setIsFullScreen(true)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.expandTopBtnText}>⛶ ขยายเต็มจอ</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Controls Overlay */}
@@ -354,7 +398,7 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
         <View style={styles.controlsRow}>
           <TouchableOpacity
             style={styles.controlBtn}
-            onPress={handleCenterClassroom}
+            onPress={() => handleCenterClassroom(false)}
             activeOpacity={0.7}
           >
             <Text style={styles.controlBtnText}>🏫 ห้องเรียน</Text>
@@ -363,7 +407,7 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
           {userCoords && (
             <TouchableOpacity
               style={styles.controlBtn}
-              onPress={handleCenterUser}
+              onPress={() => handleCenterUser(false)}
               activeOpacity={0.7}
             >
               <Text style={styles.controlBtnText}>👤 ตำแหน่งฉัน</Text>
@@ -372,13 +416,130 @@ export const RealMapView: React.FC<RealMapViewProps> = ({
 
           <TouchableOpacity
             style={[styles.controlBtn, styles.controlBtnOutline]}
-            onPress={handleFitAll}
+            onPress={() => handleFitAll(false)}
             activeOpacity={0.7}
           >
             <Text style={styles.controlBtnText}>⛶ จัดมุมมอง</Text>
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Fullscreen Map Modal */}
+      <Modal
+        visible={isFullScreen}
+        animationType="slide"
+        onRequestClose={() => setIsFullScreen(false)}
+      >
+        <SafeAreaView style={styles.modalSafeArea}>
+          <StatusBar barStyle="light-content" backgroundColor="#1E2022" />
+
+          {/* Modal Header */}
+          <View style={styles.modalHeader}>
+            <View style={styles.modalHeaderInfo}>
+              <Text style={styles.modalTitle}>แผนที่พิกัดห้องเรียน</Text>
+              <Text style={styles.modalSub} numberOfLines={1}>
+                {classroomName} • รัศมี {allowedRadius} เมตร
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setIsFullScreen(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.modalCloseBtnText}>✕ ปิดเต็มจอ</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Fullscreen Map View */}
+          <View style={styles.modalMapContainer}>
+            <WebView
+              ref={fullScreenWebViewRef}
+              originWhitelist={['*']}
+              source={{ html: fullScreenMapHtml }}
+              style={styles.map}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              startInLoadingState={true}
+              renderLoading={() => (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={Colors.inkDark} />
+                  <Text style={styles.loadingText}>กำลังเปิดแผนที่เต็มจอ...</Text>
+                </View>
+              )}
+            />
+
+            {/* Quick Action Floating Controls */}
+            <View style={styles.modalFloatingControls}>
+              <TouchableOpacity
+                style={styles.modalFloatingBtn}
+                onPress={() => handleCenterClassroom(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.modalFloatingBtnText}>🏫 ห้องเรียน</Text>
+              </TouchableOpacity>
+
+              {userCoords && (
+                <TouchableOpacity
+                  style={styles.modalFloatingBtn}
+                  onPress={() => handleCenterUser(true)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.modalFloatingBtnText}>👤 ตำแหน่งฉัน</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={[styles.modalFloatingBtn, { backgroundColor: '#1E2022' }]}
+                onPress={() => handleFitAll(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.modalFloatingBtnText, { color: '#F4F1EA' }]}>
+                  ⛶ มุมมองรวม
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Bottom Info Card */}
+            <View style={styles.modalBottomCard}>
+              <View style={styles.bottomCardRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.bottomCardLabel}>สถานะการตรวจสอบพิกัด</Text>
+                  <Text style={[
+                    styles.bottomCardValue,
+                    {
+                      color: userCoords
+                        ? isWithinRadius
+                          ? Colors.stampGreen
+                          : Colors.stampRed
+                        : Colors.inkDark,
+                    }
+                  ]}>
+                    {userCoords
+                      ? isWithinRadius
+                        ? '✓ อยู่ในรัศมีห้องเรียน'
+                        : '✕ อยู่นอกรัศมีห้องเรียน'
+                      : '○ ยังไม่ได้ระบุพิกัดนักศึกษา'}
+                  </Text>
+                </View>
+
+                {distance !== null && (
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.bottomCardLabel}>ระยะห่าง</Text>
+                    <Text style={styles.bottomCardValue}>{distance} เมตร</Text>
+                  </View>
+                )}
+              </View>
+
+              {userAccuracy !== null && userAccuracy !== undefined && (
+                <Text style={styles.bottomCardAccuracy}>
+                  ความแม่นยำของสัญญาณ GPS: ±{userAccuracy} เมตร • รัศมีที่กำหนด: {allowedRadius} เมตร
+                </Text>
+              )}
+            </View>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 };
@@ -416,13 +577,14 @@ const styles = StyleSheet.create({
     left: 8,
     right: 8,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     pointerEvents: 'box-none',
   },
   statusPill: {
     backgroundColor: 'rgba(30, 32, 34, 0.88)',
     paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.panelBackground,
@@ -434,8 +596,26 @@ const styles = StyleSheet.create({
   },
   statusPillText: {
     color: '#F4F1EA',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
+  },
+  expandTopBtn: {
+    backgroundColor: '#F4F1EA',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: Colors.inkDark,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  expandTopBtnText: {
+    color: Colors.inkDark,
+    fontSize: 10,
+    fontWeight: '900',
   },
   controlsRow: {
     position: 'absolute',
@@ -465,5 +645,118 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     color: Colors.inkDark,
+  },
+  modalSafeArea: {
+    flex: 1,
+    backgroundColor: '#1E2022',
+  },
+  modalHeader: {
+    backgroundColor: '#1E2022',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderColor: '#3A3D40',
+  },
+  modalHeaderInfo: {
+    flex: 1,
+  },
+  modalTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#F4F1EA',
+    letterSpacing: 0.5,
+  },
+  modalSub: {
+    fontSize: 11,
+    color: '#A8A49C',
+    marginTop: 2,
+  },
+  modalCloseBtn: {
+    backgroundColor: Colors.stampRed,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  modalCloseBtnText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  modalMapContainer: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: '#EAE6DF',
+  },
+  modalFloatingControls: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    flexDirection: 'column',
+    gap: 8,
+    zIndex: 10,
+  },
+  modalFloatingBtn: {
+    backgroundColor: '#F4F1EA',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: Colors.inkDark,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 4,
+    alignItems: 'center',
+  },
+  modalFloatingBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: Colors.inkDark,
+  },
+  modalBottomCard: {
+    position: 'absolute',
+    bottom: 16,
+    left: 14,
+    right: 14,
+    backgroundColor: 'rgba(244, 241, 234, 0.96)',
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Colors.inkDark,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  bottomCardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  bottomCardLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.inkMuted,
+    letterSpacing: 0.5,
+  },
+  bottomCardValue: {
+    fontSize: 13,
+    fontWeight: '900',
+    marginTop: 2,
+  },
+  bottomCardAccuracy: {
+    fontSize: 10,
+    color: Colors.inkMuted,
+    marginTop: 6,
+    borderTopWidth: 1,
+    borderColor: Colors.borderLight,
+    paddingTop: 6,
   },
 });
