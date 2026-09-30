@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -24,14 +24,14 @@ const VISIBLE_ITEMS = 5;
 const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 220px
 const PADDING_COUNT = 2; // (5 - 1) / 2 = 2 items padding above and below center
 
-// Infinite loop setup: repeat items across multiple cycles
-const CYCLES = 15;
-const CENTER_CYCLE = 7;
+// Optimized loop cycles: 5 cycles provides smooth wrap-around in both directions with minimum render overhead
+const CYCLES = 5;
+const CENTER_CYCLE = 2;
 
 const BASE_HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
 const BASE_MINUTES = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
 
-// Build looped arrays: 23:00 seamlessly connects to 00:00, 59 seamlessly connects to 00
+// Build looped arrays once outside component
 const LOOPED_HOURS: string[] = [];
 for (let c = 0; c < CYCLES; c++) {
   for (let h = 0; h < 24; h++) {
@@ -74,35 +74,43 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
   const hourScrollRef = useRef<ScrollView>(null);
   const minuteScrollRef = useRef<ScrollView>(null);
 
-  // Position wheels at center cycle when modal opens
-  useEffect(() => {
-    if (visible && initialTime && initialTime.includes(':')) {
+  // Parse initial time
+  const { initialH, initialM } = useMemo(() => {
+    if (initialTime && initialTime.includes(':')) {
       const [hStr, mStr] = initialTime.split(':');
       const h = parseInt(hStr, 10);
       const m = parseInt(mStr, 10);
-      const safeH = isNaN(h) ? 9 : Math.min(23, Math.max(0, h));
-      const safeM = isNaN(m) ? 0 : Math.min(59, Math.max(0, m));
+      return {
+        initialH: isNaN(h) ? 9 : Math.min(23, Math.max(0, h)),
+        initialM: isNaN(m) ? 0 : Math.min(59, Math.max(0, m)),
+      };
+    }
+    return { initialH: 9, initialM: 0 };
+  }, [initialTime]);
 
-      setSelectedHour(safeH.toString().padStart(2, '0'));
-      setSelectedMinute(safeM.toString().padStart(2, '0'));
+  const initialHourOffset = (CENTER_CYCLE * 24 + initialH) * ITEM_HEIGHT;
+  const initialMinuteOffset = (CENTER_CYCLE * 60 + initialM) * ITEM_HEIGHT;
 
-      const targetHIdx = CENTER_CYCLE * 24 + safeH;
-      const targetMIdx = CENTER_CYCLE * 60 + safeM;
+  // Immediate positioning without lag
+  useEffect(() => {
+    if (visible) {
+      setSelectedHour(initialH.toString().padStart(2, '0'));
+      setSelectedMinute(initialM.toString().padStart(2, '0'));
 
-      const timer = setTimeout(() => {
+      const frameId = requestAnimationFrame(() => {
         hourScrollRef.current?.scrollTo({
-          y: targetHIdx * ITEM_HEIGHT,
+          y: initialHourOffset,
           animated: false,
         });
         minuteScrollRef.current?.scrollTo({
-          y: targetMIdx * ITEM_HEIGHT,
+          y: initialMinuteOffset,
           animated: false,
         });
-      }, 60);
+      });
 
-      return () => clearTimeout(timer);
+      return () => cancelAnimationFrame(frameId);
     }
-  }, [visible, initialTime]);
+  }, [visible, initialH, initialM, initialHourOffset, initialMinuteOffset]);
 
   const handleHourScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = e.nativeEvent.contentOffset.y;
@@ -268,6 +276,7 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
                   snapToInterval={ITEM_HEIGHT}
                   decelerationRate="fast"
                   bounces={false}
+                  contentOffset={{ x: 0, y: initialHourOffset }}
                   onMomentumScrollEnd={handleHourScrollEnd}
                   onScrollEndDrag={handleHourScrollEnd}
                   contentContainerStyle={styles.wheelScrollContent}
@@ -314,6 +323,7 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
                   snapToInterval={ITEM_HEIGHT}
                   decelerationRate="fast"
                   bounces={false}
+                  contentOffset={{ x: 0, y: initialMinuteOffset }}
                   onMomentumScrollEnd={handleMinuteScrollEnd}
                   onScrollEndDrag={handleMinuteScrollEnd}
                   contentContainerStyle={styles.wheelScrollContent}
