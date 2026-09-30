@@ -225,19 +225,22 @@ export default function CreateSessionScreen() {
         {/* GPS Coordinates Section */}
         <View style={styles.geoBox}>
           <View style={styles.geoHeader}>
-            <Text style={styles.geoTitle}>กำหนดพิกัดตำแหน่งห้องเรียน (GPS)</Text>
-            <TouchableOpacity
-              style={styles.gpsButton}
-              onPress={handleUseCurrentLocation}
-              disabled={fetchingGps}
-            >
-              {fetchingGps ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text style={styles.gpsButtonText}>📍 ใช้พิกัดปัจจุบัน</Text>
-              )}
-            </TouchableOpacity>
+            <Text style={styles.geoTitle}>พิกัดตำแหน่งห้องเรียน (GPS)</Text>
+            <Text style={styles.geoSubText}>สามารถกรอกพิกัดเอง หรือกดปุ่มดึงพิกัดปัจจุบัน</Text>
           </View>
+
+          <TouchableOpacity
+            style={styles.gpsButton}
+            onPress={handleUseCurrentLocation}
+            disabled={fetchingGps}
+            activeOpacity={0.8}
+          >
+            {fetchingGps ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.gpsButtonText}>📍 ดึงพิกัดตำแหน่งปัจจุบันของฉัน</Text>
+            )}
+          </TouchableOpacity>
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1 }]}>
@@ -419,28 +422,36 @@ const styles = StyleSheet.create({
     borderColor: Colors.inkDark,
     borderRadius: 4,
     padding: 12,
-    marginVertical: 6,
+    marginVertical: 8,
   },
   geoHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   geoTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '900',
     color: Colors.inkDark,
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
+  },
+  geoSubText: {
+    fontSize: 10,
+    color: Colors.inkMuted,
+    marginTop: 2,
+    fontWeight: '600',
   },
   gpsButton: {
     backgroundColor: Colors.stampBlue,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 3,
+    borderWidth: 1.5,
+    borderColor: Colors.inkDark,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   gpsButtonText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: 0.5,
