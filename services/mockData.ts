@@ -53,7 +53,18 @@ export const INITIAL_COURSES: Course[] = [
   },
 ];
 
-const today = new Date().toISOString().split('T')[0];
+const now = new Date();
+const today = now.toISOString().split('T')[0];
+const tomorrow = new Date(now.getTime() + 86400000).toISOString().split('T')[0];
+
+const currentHour = now.getHours();
+const activeStart = `${Math.max(0, currentHour - 1).toString().padStart(2, '0')}:00`;
+const activeEnd = `${Math.min(23, currentHour + 2).toString().padStart(2, '0')}:59`;
+
+const isLateNight = currentHour >= 21;
+const futureDate = isLateNight ? tomorrow : today;
+const futureStart = isLateNight ? '09:00' : `${(currentHour + 2).toString().padStart(2, '0')}:00`;
+const futureEnd = isLateNight ? '12:00' : `${Math.min(23, currentHour + 4).toString().padStart(2, '0')}:00`;
 
 export const INITIAL_SESSIONS: AttendanceSession[] = [
   {
@@ -63,8 +74,8 @@ export const INITIAL_SESSIONS: AttendanceSession[] = [
     courseCode: 'CPE401',
     room: 'ห้อง 301',
     date: today,
-    startTime: '09:00',
-    endTime: '12:00',
+    startTime: activeStart,
+    endTime: activeEnd,
     // Default university room coordinates (Khon Kaen Univ / general campus)
     latitude: 16.474431,
     longitude: 102.823101,
@@ -76,18 +87,34 @@ export const INITIAL_SESSIONS: AttendanceSession[] = [
   {
     id: 'session-102',
     courseId: 'course-2',
-    courseName: 'Database Systems',
+    courseName: 'Database Systems (คาบเรียนรอบถัดไป)',
     courseCode: 'CPE202',
     room: 'ห้อง 402',
-    date: today,
-    startTime: '13:00',
-    endTime: '16:00',
+    date: futureDate,
+    startTime: futureStart,
+    endTime: futureEnd,
     latitude: 16.474500,
     longitude: 102.823500,
     allowedRadius: 50,
-    status: 'closed',
+    status: 'open',
     totalExpected: 42,
     totalPresent: 0,
+  },
+  {
+    id: 'session-103',
+    courseId: 'course-3',
+    courseName: 'Computer Networks (คาบที่หมดเวลาแล้ว)',
+    courseCode: 'CPE303',
+    room: 'ห้อง 205',
+    date: today,
+    startTime: '06:00',
+    endTime: '07:30',
+    latitude: 16.474431,
+    longitude: 102.823101,
+    allowedRadius: 50,
+    status: 'closed',
+    totalExpected: 38,
+    totalPresent: 35,
   }
 ];
 

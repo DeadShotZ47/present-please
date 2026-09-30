@@ -5,6 +5,8 @@ import { AttendanceSession } from '../types';
 import { StatusBadge } from './StatusBadge';
 import { PrimaryButton } from './PrimaryButton';
 
+import { getSessionTimeStatus } from '../utils/sessionTime';
+
 interface AttendanceCardProps {
   session: AttendanceSession;
   onCheckAttendance?: () => void;
@@ -19,6 +21,18 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({
   isCompleted = false,
 }) => {
   const isOpen = session.status === 'open';
+  const timeStatus = getSessionTimeStatus(session);
+
+  const getBadgeInfo = () => {
+    if (isCompleted) return { status: 'present' as const, label: '✓ เช็กชื่อแล้ว' };
+    if (!isOpen) return { status: 'closed' as const, label: 'ปิดรับเช็กชื่อ' };
+    if (timeStatus.status === 'before') return { status: 'waiting' as const, label: timeStatus.badgeLabel };
+    if (timeStatus.status === 'after') return { status: 'expired' as const, label: timeStatus.badgeLabel };
+    return { status: 'open' as const, label: 'เปิดรับเช็กชื่อ' };
+  };
+
+  const badgeInfo = getBadgeInfo();
+  const canCheckIn = isOpen && timeStatus.canCheckIn && !isCompleted;
 
   return (
     <View style={styles.card}>
@@ -28,8 +42,8 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({
           <Text style={styles.titleText}>{session.courseName || 'Class Session'}</Text>
         </View>
         <StatusBadge
-          status={isCompleted ? 'present' : isOpen ? 'open' : 'closed'}
-          label={isCompleted ? '✓ เช็กชื่อแล้ว' : undefined}
+          status={badgeInfo.status}
+          label={badgeInfo.label}
           size="small"
         />
       </View>
@@ -53,17 +67,28 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({
 
       {onCheckAttendance && !isCompleted && (
         <View style={styles.actionContainer}>
-          {isOpen ? (
+          {!isOpen ? (
+            <View style={styles.closedNotice}>
+              <Text style={styles.closedText}>อาจารย์ปิดรับการเช็กชื่อแล้ว</Text>
+            </View>
+          ) : timeStatus.status === 'before' ? (
+            <View style={styles.waitingNotice}>
+              <Text style={styles.waitingNoticeTitle}>🕒 ยังไม่ถึงเวลาเริ่มเรียน</Text>
+              <Text style={styles.waitingNoticeSub}>
+                เปิดเช็กชื่อเฉพาะช่วงเวลาเรียน ({session.startTime} - {session.endTime} น.)
+              </Text>
+            </View>
+          ) : timeStatus.status === 'after' ? (
+            <View style={styles.closedNotice}>
+              <Text style={styles.closedText}>หมดเวลาเช็กชื่อแล้ว (สิ้นสุด {session.endTime} น.)</Text>
+            </View>
+          ) : (
             <PrimaryButton
               title="เช็กชื่อเข้าเรียน"
               variant="primary"
               onPress={onCheckAttendance}
               style={{ marginTop: 8 }}
             />
-          ) : (
-            <View style={styles.closedNotice}>
-              <Text style={styles.closedText}>ยังไม่เปิดให้เช็กชื่อ</Text>
-            </View>
           )}
         </View>
       )}
@@ -151,7 +176,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: Colors.inkMuted,
-    letterSpacing: 1,
+    letterSpacing: 0.5,
+  },
+  waitingNotice: {
+    backgroundColor: Colors.stampAmberBg,
+    borderWidth: 1.5,
+    borderColor: Colors.stampAmber,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    borderRadius: 4,
+    marginTop: 6,
+  },
+  waitingNoticeTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: Colors.stampAmber,
+  },
+  waitingNoticeSub: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.inkDark,
+    marginTop: 2,
+    textAlign: 'center',
   },
   detailsLink: {
     marginTop: 10,

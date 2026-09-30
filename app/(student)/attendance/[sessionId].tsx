@@ -18,6 +18,7 @@ import { LoadingState } from '../../../components/LoadingState';
 import { LocationService } from '../../../services/location';
 import { CameraService } from '../../../services/camera';
 import { formatTimeWithSeconds } from '../../../utils/formatting';
+import { getSessionTimeStatus } from '../../../utils/sessionTime';
 
 export default function AttendanceFlowScreen() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
@@ -108,6 +109,12 @@ export default function AttendanceFlowScreen() {
   const handleSubmit = async () => {
     if (!session) return;
     setSubmitError(null);
+
+    const timeStatus = getSessionTimeStatus(session);
+    if (!timeStatus.canCheckIn) {
+      setSubmitError(timeStatus.message);
+      return;
+    }
 
     if (!gpsVerified || !gpsCoords) {
       setSubmitError('กรุณาตรวจสอบตำแหน่งให้อยู่ในห้องเรียนก่อนส่งข้อมูล');
@@ -208,7 +215,18 @@ export default function AttendanceFlowScreen() {
     );
   }
 
-  const isReadyToSubmit = gpsVerified && !!photoUri && !submitting;
+  const timeStatus = getSessionTimeStatus(session);
+  const isTimeValid = timeStatus.canCheckIn;
+  const isReadyToSubmit = isTimeValid && gpsVerified && !!photoUri && !submitting;
+
+  let submitButtonTitle = 'กรุณาดำเนินการให้ครบทั้ง 2 ขั้นตอน';
+  if (!isTimeValid) {
+    submitButtonTitle = timeStatus.status === 'before'
+      ? `ยังไม่ถึงเวลาเริ่มเรียน (เริ่ม ${session.startTime} น.)`
+      : `หมดเวลาเช็กชื่อแล้ว (${session.endTime} น.)`;
+  } else if (isReadyToSubmit) {
+    submitButtonTitle = 'ยืนยันการเช็กชื่อ';
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -216,8 +234,13 @@ export default function AttendanceFlowScreen() {
       <View style={styles.sessionHeaderCard}>
         <View style={styles.badgeRow}>
           <Text style={styles.tag}>เช็กชื่อเข้าเรียน</Text>
-          <Text style={styles.statusIndicator}>
-            สถานะ: {session.status === 'open' ? 'เปิดรับเช็กชื่อ' : 'ปิดรับเช็กชื่อ'}
+          <Text style={[
+            styles.statusIndicator,
+            !isTimeValid && { color: timeStatus.status === 'before' ? Colors.stampAmber : Colors.stampRed }
+          ]}>
+            {!isTimeValid
+              ? timeStatus.badgeLabel
+              : session.status === 'open' ? 'เปิดรับเช็กชื่อ' : 'ปิดรับเช็กชื่อ'}
           </Text>
         </View>
         <Text style={styles.courseName}>{session.courseName}</Text>
@@ -225,6 +248,25 @@ export default function AttendanceFlowScreen() {
           {session.startTime} - {session.endTime} • {session.room || 'ห้อง 301'}
         </Text>
       </View>
+
+      {/* Time Alert Banner if outside class time */}
+      {!isTimeValid && (
+        <View style={[
+          styles.timeBanner,
+          timeStatus.status === 'before' ? styles.timeBannerWaiting : styles.timeBannerExpired
+        ]}>
+          <Text style={[
+            styles.timeBannerTitle,
+            { color: timeStatus.status === 'before' ? Colors.stampAmber : Colors.stampRed }
+          ]}>
+            {timeStatus.status === 'before' ? '🕒 ยังไม่ถึงเวลาเริ่มเรียน' : '✕ หมดเวลาเช็กชื่อแล้ว'}
+          </Text>
+          <Text style={styles.timeBannerMessage}>{timeStatus.message}</Text>
+          <Text style={styles.timeBannerRule}>
+            • กฎของระบบ: นักศึกษาต้องทำการเช็กชื่อภายในช่วงเวลาเรียนเท่านั้น ({session.startTime} - {session.endTime} น.)
+          </Text>
+        </View>
+      )}
 
       <ErrorMessage message={submitError || ''} />
 
@@ -251,6 +293,9 @@ export default function AttendanceFlowScreen() {
         <View style={styles.checklist}>
           <Text style={styles.checklistTitle}>รายการที่ต้องดำเนินการ:</Text>
           <Text style={styles.checklistItem}>
+            {isTimeValid ? '✓' : '✕'} เวลาเรียน: {session.startTime} - {session.endTime} น. ({timeStatus.message})
+          </Text>
+          <Text style={styles.checklistItem}>
             {gpsVerified ? '✓' : '○'} ขั้นตอนที่ 1: ตรวจสอบพิกัดให้อยู่ในห้องเรียน
           </Text>
           <Text style={styles.checklistItem}>
@@ -259,7 +304,7 @@ export default function AttendanceFlowScreen() {
         </View>
 
         <PrimaryButton
-          title={isReadyToSubmit ? 'ยืนยันการเช็กชื่อ' : 'กรุณาดำเนินการให้ครบทั้ง 2 ขั้นตอน'}
+          title={submitButtonTitle}
           variant="primary"
           disabled={!isReadyToSubmit}
           loading={submitting}
@@ -323,6 +368,37 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Colors.stampGreen,
     letterSpacing: 1,
+  },
+  timeBanner: {
+    borderWidth: 1.5,
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 10,
+  },
+  timeBannerWaiting: {
+    backgroundColor: Colors.stampAmberBg,
+    borderColor: Colors.stampAmber,
+  },
+  timeBannerExpired: {
+    backgroundColor: Colors.stampRedBg,
+    borderColor: Colors.stampRed,
+  },
+  timeBannerTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    marginBottom: 4,
+  },
+  timeBannerMessage: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.inkDark,
+    lineHeight: 17,
+  },
+  timeBannerRule: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.inkMuted,
+    marginTop: 6,
   },
   courseName: {
     fontSize: 18,

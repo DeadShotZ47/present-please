@@ -4,7 +4,7 @@ import Colors from '../constants/Colors';
 import { AttendanceStatus } from '../types';
 
 interface StatusBadgeProps {
-  status: AttendanceStatus | 'open' | 'closed';
+  status: AttendanceStatus | 'open' | 'closed' | 'waiting' | 'expired';
   label?: string;
   size?: 'small' | 'medium' | 'large';
   style?: ViewStyle;
@@ -47,9 +47,17 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
           bg: Colors.stampGreenBg,
           border: Colors.stampGreen,
         };
+      case 'waiting':
+        return {
+          text: label || '🕒 รอเวลาเริ่มเรียน',
+          color: Colors.stampAmber,
+          bg: Colors.stampAmberBg,
+          border: Colors.stampAmber,
+        };
+      case 'expired':
       case 'closed':
         return {
-          text: label || 'ปิดรับเช็กชื่อ',
+          text: label || (status === 'expired' ? 'หมดเวลาเช็กชื่อ' : 'ปิดรับเช็กชื่อ'),
           color: Colors.inkMuted,
           bg: Colors.panelBackground,
           border: Colors.inkMuted,

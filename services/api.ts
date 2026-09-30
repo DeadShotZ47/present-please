@@ -2,6 +2,7 @@ import { User, Course, AttendanceSession, Attendance, AttendanceSubmissionPayloa
 import { StorageService } from './storage';
 import { INITIAL_USERS, INITIAL_COURSES, INITIAL_SESSIONS, INITIAL_ATTENDANCE } from './mockData';
 import { calculateDistance } from '../utils/distance';
+import { getSessionTimeStatus } from '../utils/sessionTime';
 
 const USERS_STORAGE_KEY = 'pp_users_db';
 const COURSES_STORAGE_KEY = 'pp_courses_db';
@@ -25,8 +26,24 @@ class ApiService {
     }
 
     const existingSessions = await StorageService.getItem<AttendanceSession[]>(SESSIONS_STORAGE_KEY);
-    if (!existingSessions) {
+    if (!existingSessions || existingSessions.length === 0) {
       await StorageService.setItem(SESSIONS_STORAGE_KEY, INITIAL_SESSIONS);
+    } else {
+      // Sync initial mock sessions to current time while keeping user-created sessions
+      const updated = existingSessions.map((s) => {
+        const foundInitial = INITIAL_SESSIONS.find((init) => init.id === s.id);
+        if (foundInitial) {
+          return {
+            ...s,
+            date: foundInitial.date,
+            startTime: foundInitial.startTime,
+            endTime: foundInitial.endTime,
+            status: foundInitial.status,
+          };
+        }
+        return s;
+      });
+      await StorageService.setItem(SESSIONS_STORAGE_KEY, updated);
     }
 
     const existingAttendance = await StorageService.getItem<Attendance[]>(ATTENDANCE_STORAGE_KEY);
@@ -191,6 +208,12 @@ class ApiService {
 
     if (session.status !== 'open') {
       throw new Error('คาบเรียนนี้ปิดรับการเช็กชื่อแล้ว');
+    }
+
+    // Rule: Cannot check in before start time or after end time (must be within class time only)
+    const timeStatus = getSessionTimeStatus(session);
+    if (!timeStatus.canCheckIn) {
+      throw new Error(timeStatus.message);
     }
 
     if (!payload.photoUri) {

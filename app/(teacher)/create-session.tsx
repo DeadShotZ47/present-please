@@ -16,6 +16,8 @@ import Colors from '../../constants/Colors';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ErrorMessage } from '../../components/ErrorMessage';
 import { LocationService } from '../../services/location';
+import { TimePickerModal } from '../../components/TimePickerModal';
+import { DatePickerModal } from '../../components/DatePickerModal';
 
 export default function CreateSessionScreen() {
   const router = useRouter();
@@ -25,12 +27,21 @@ export default function CreateSessionScreen() {
 
   const todayStr = new Date().toISOString().split('T')[0];
   const [date, setDate] = useState(todayStr);
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('12:00');
-  const [room, setRoom] = useState('Room 301');
+
+  // Default times around current time
+  const now = new Date();
+  const currentHourStr = now.getHours().toString().padStart(2, '0');
+  const nextHourStr = ((now.getHours() + 3) % 24).toString().padStart(2, '0');
+  const [startTime, setStartTime] = useState(`${currentHourStr}:00`);
+  const [endTime, setEndTime] = useState(`${nextHourStr}:00`);
+  const [room, setRoom] = useState('ห้อง 301');
   const [latitude, setLatitude] = useState('16.474431');
   const [longitude, setLongitude] = useState('102.823101');
   const [allowedRadius, setAllowedRadius] = useState('50');
+
+  // Modals state
+  const [timePickerTarget, setTimePickerTarget] = useState<'start' | 'end' | null>(null);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   const [fetchingGps, setFetchingGps] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -85,8 +96,14 @@ export default function CreateSessionScreen() {
       setError('พิกัดละติจูดและลองจิจูดต้องเป็นตัวเลขที่ถูกต้อง');
       return;
     }
-    if (isNaN(radiusNum) || radiusNum <= 0) {
-      setError('รัศมีที่อนุญาตต้องมากกว่า 0 เมตร');
+    if (!startTime || !endTime) {
+      setError('กรุณากำหนดเวลาเริ่มและเวลาเลิกเรียน');
+      return;
+    }
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    if (startH * 60 + startM >= endH * 60 + endM) {
+      setError('เวลาเลิกเรียนต้องอยู่หลังเวลาเริ่มเรียน (เช่น เริ่ม 09:00 เลิก 12:00)');
       return;
     }
 
@@ -159,16 +176,17 @@ export default function CreateSessionScreen() {
           ))}
         </View>
 
-        {/* Date and Times */}
+        {/* Date and Times with UI Pickers */}
         <View style={styles.row}>
           <View style={[styles.inputGroup, { flex: 1 }]}>
-            <Text style={styles.label}>วันที่ (ปปปป-ดด-วว)</Text>
-            <TextInput
-              style={styles.input}
-              value={date}
-              onChangeText={setDate}
-              placeholder="2026-09-30"
-            />
+            <Text style={styles.label}>วันที่ทำการสอน</Text>
+            <TouchableOpacity
+              style={styles.pickerButton}
+              onPress={() => setDatePickerVisible(true)}
+            >
+              <Text style={styles.pickerValueText}>📅 {date}</Text>
+              <Text style={styles.pickerHint}>แตะเพื่อเปลี่ยนวัน</Text>
+            </TouchableOpacity>
           </View>
           <View style={[styles.inputGroup, { flex: 1 }]}>
             <Text style={styles.label}>ห้องเรียน</Text>
@@ -184,21 +202,23 @@ export default function CreateSessionScreen() {
         <View style={styles.row}>
           <View style={[styles.inputGroup, { flex: 1 }]}>
             <Text style={styles.label}>เวลาเริ่มเรียน</Text>
-            <TextInput
-              style={styles.input}
-              value={startTime}
-              onChangeText={setStartTime}
-              placeholder="09:00"
-            />
+            <TouchableOpacity
+              style={styles.pickerButton}
+              onPress={() => setTimePickerTarget('start')}
+            >
+              <Text style={styles.pickerValueText}>🕒 {startTime} น.</Text>
+              <Text style={styles.pickerHint}>แตะเพื่อเลือกเวลา</Text>
+            </TouchableOpacity>
           </View>
           <View style={[styles.inputGroup, { flex: 1 }]}>
             <Text style={styles.label}>เวลาเลิกเรียน</Text>
-            <TextInput
-              style={styles.input}
-              value={endTime}
-              onChangeText={setEndTime}
-              placeholder="12:00"
-            />
+            <TouchableOpacity
+              style={styles.pickerButton}
+              onPress={() => setTimePickerTarget('end')}
+            >
+              <Text style={styles.pickerValueText}>🕒 {endTime} น.</Text>
+              <Text style={styles.pickerHint}>แตะเพื่อเลือกเวลา</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -260,6 +280,29 @@ export default function CreateSessionScreen() {
           style={{ marginTop: 16 }}
         />
       </View>
+
+      {/* Time Picker Modal */}
+      <TimePickerModal
+        visible={timePickerTarget !== null}
+        title={timePickerTarget === 'start' ? 'เลือกเวลาเริ่มเรียน' : 'เลือกเวลาเลิกเรียน'}
+        initialTime={timePickerTarget === 'start' ? startTime : endTime}
+        onConfirm={(newTime) => {
+          if (timePickerTarget === 'start') {
+            setStartTime(newTime);
+          } else {
+            setEndTime(newTime);
+          }
+        }}
+        onClose={() => setTimePickerTarget(null)}
+      />
+
+      {/* Date Picker Modal */}
+      <DatePickerModal
+        visible={datePickerVisible}
+        selectedDate={date}
+        onConfirm={(newDate) => setDate(newDate)}
+        onClose={() => setDatePickerVisible(false)}
+      />
     </ScrollView>
   );
 }
@@ -344,11 +387,31 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.inkDark,
     borderRadius: 3,
-    height: 42,
+    height: 44,
     paddingHorizontal: 10,
     fontSize: 13,
     fontWeight: '700',
     color: Colors.inkDark,
+  },
+  pickerButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: Colors.inkDark,
+    borderRadius: 3,
+    height: 44,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+  },
+  pickerValueText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Colors.inkDark,
+  },
+  pickerHint: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: Colors.stampBlue,
+    marginTop: 1,
   },
   geoBox: {
     backgroundColor: '#F9F7F2',
