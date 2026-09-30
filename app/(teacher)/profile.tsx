@@ -1,13 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import Colors from '../../constants/Colors';
 import { PrimaryButton } from '../../components/PrimaryButton';
+import { notificationService } from '../../services/notification';
 
 export default function TeacherProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const [testingNotif, setTestingNotif] = useState(false);
+
+  const handleTestNotif = async () => {
+    setTestingNotif(true);
+    try {
+      await notificationService.sendTestNotification();
+    } finally {
+      setTestingNotif(false);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -68,11 +79,26 @@ export default function TeacherProfileScreen() {
         </View>
       </View>
 
+      {/* Test Notification Card */}
+      <View style={styles.notifCard}>
+        <Text style={styles.notifTitle}>🔔 ระบบการแจ้งเตือน (Push Notifications)</Text>
+        <Text style={styles.notifDesc}>
+          ทดสอบยิงการแจ้งเตือนเตือนเข้าเรียน (Section 29: Class starting soon)
+        </Text>
+        <PrimaryButton
+          title="ทดสอบยิงแจ้งเตือนเตือนเข้าเรียน"
+          variant="secondary"
+          loading={testingNotif}
+          onPress={handleTestNotif}
+          style={{ marginTop: 10 }}
+        />
+      </View>
+
       <PrimaryButton
         title="ออกจากระบบ"
         variant="danger"
         onPress={handleLogout}
-        style={{ marginTop: 24 }}
+        style={{ marginTop: 14 }}
       />
     </ScrollView>
   );
@@ -213,5 +239,25 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Colors.inkFaint,
     letterSpacing: 1.5,
+  },
+  notifCard: {
+    backgroundColor: '#FAF7EE',
+    borderWidth: 1.5,
+    borderColor: Colors.stampAmber,
+    borderRadius: 4,
+    padding: 14,
+    marginTop: 16,
+  },
+  notifTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: Colors.inkDark,
+    letterSpacing: 0.5,
+  },
+  notifDesc: {
+    fontSize: 11,
+    color: Colors.inkMuted,
+    marginTop: 2,
+    lineHeight: 16,
   },
 });

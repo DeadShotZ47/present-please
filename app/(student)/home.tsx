@@ -6,6 +6,7 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,6 +16,7 @@ import Colors from '../../constants/Colors';
 import { AttendanceCard } from '../../components/AttendanceCard';
 import { LoadingState } from '../../components/LoadingState';
 import { EmptyState } from '../../components/EmptyState';
+import { notificationService } from '../../services/notification';
 
 export default function StudentHomeScreen() {
   const router = useRouter();
@@ -24,6 +26,16 @@ export default function StudentHomeScreen() {
   const [attendances, setAttendances] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [sendingNotification, setSendingNotification] = useState(false);
+
+  const handleTestNotification = async () => {
+    setSendingNotification(true);
+    try {
+      await notificationService.sendTestNotification();
+    } finally {
+      setSendingNotification(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -74,6 +86,28 @@ export default function StudentHomeScreen() {
         <Text style={styles.subtext}>
           กรุณาอยู่ในพื้นที่ห้องเรียนก่อนเริ่มขั้นตอนการเช็กชื่อเข้าเรียน
         </Text>
+      </View>
+
+      {/* Test Notification Quick Card */}
+      <View style={styles.testNotificationCard}>
+        <View style={styles.testNotificationContent}>
+          <Text style={styles.testNotificationTitle}>🔔 ทดสอบระบบแจ้งเตือน (Notifications)</Text>
+          <Text style={styles.testNotificationSub}>
+            จำลองแจ้งเตือนเตือนเข้าเรียน: "วิชา Mobile App Dev จะเริ่มใน 15 นาที"
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.testNotificationBtn}
+          onPress={handleTestNotification}
+          disabled={sendingNotification}
+          activeOpacity={0.8}
+        >
+          {sendingNotification ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.testNotificationBtnText}>ยิงแจ้งเตือน</Text>
+          )}
+        </TouchableOpacity>
       </View>
 
       {/* Section Title */}
@@ -213,5 +247,48 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     marginVertical: 2,
     fontWeight: '600',
+  },
+  testNotificationCard: {
+    backgroundColor: '#FAF7EE',
+    borderWidth: 1.5,
+    borderColor: Colors.stampAmber,
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  testNotificationContent: {
+    flex: 1,
+  },
+  testNotificationTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: Colors.inkDark,
+    letterSpacing: 0.5,
+  },
+  testNotificationSub: {
+    fontSize: 10,
+    color: Colors.inkMuted,
+    marginTop: 2,
+    lineHeight: 14,
+  },
+  testNotificationBtn: {
+    backgroundColor: Colors.stampBlue,
+    borderWidth: 1,
+    borderColor: Colors.inkDark,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  testNotificationBtnText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
 });
