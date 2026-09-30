@@ -129,6 +129,31 @@ class ApiService {
     await StorageService.removeItem('pp_current_user');
   }
 
+  async updateCurrentUser(data: Partial<User>): Promise<User> {
+    await this.ensureInitialized();
+    const currentUser = await this.getCurrentUser();
+    if (!currentUser) {
+      throw new Error('ไม่พบข้อมูลผู้ใช้งานที่เข้าสู่ระบบ');
+    }
+
+    const updatedUser: User = {
+      ...currentUser,
+      ...data,
+    };
+
+    // Update in users database
+    const users = (await StorageService.getItem<User[]>(USERS_STORAGE_KEY)) || INITIAL_USERS;
+    const userIndex = users.findIndex((u) => u.id === currentUser.id);
+    if (userIndex !== -1) {
+      users[userIndex] = updatedUser;
+      await StorageService.setItem(USERS_STORAGE_KEY, users);
+    }
+
+    // Update current active session
+    await StorageService.setItem('pp_current_user', updatedUser);
+    return updatedUser;
+  }
+
   // ================= COURSES =================
 
   async getCourses(): Promise<Course[]> {

@@ -66,4 +66,58 @@ export const CameraService = {
       return null;
     }
   },
+
+  /**
+   * Pick or capture 1:1 square image for profile avatar
+   */
+  async pickProfileImage(mode: 'camera' | 'gallery'): Promise<string | null> {
+    try {
+      if (mode === 'camera') {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            'จำเป็นต้องเข้าถึงกล้องถ่ายรูป',
+            'กรุณาเปิดสิทธิ์การใช้งานกล้องในการตั้งค่าอุปกรณ์เพื่อถ่ายภาพโปรไฟล์'
+          );
+          return null;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          return result.assets[0].uri;
+        }
+        return null;
+      } else {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            'จำเป็นต้องเข้าถึงคลังภาพ',
+            'กรุณาเปิดสิทธิ์การใช้งานคลังรูปภาพในการตั้งค่าเพื่อเลือกภาพโปรไฟล์'
+          );
+          return null;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          return result.assets[0].uri;
+        }
+        return null;
+      }
+    } catch (err) {
+      console.warn('pickProfileImage error', err);
+      return null;
+    }
+  },
 };

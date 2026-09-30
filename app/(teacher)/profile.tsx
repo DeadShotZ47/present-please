@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import Colors from '../../constants/Colors';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { notificationService } from '../../services/notification';
+import { EditProfileImageModal } from '../../components/EditProfileImageModal';
 
 export default function TeacherProfileScreen() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUserProfile } = useAuth();
   const [testingNotif, setTestingNotif] = useState(false);
+  const [editImageModalVisible, setEditImageModalVisible] = useState(false);
 
   const handleTestNotif = async () => {
     setTestingNotif(true);
@@ -39,19 +41,38 @@ export default function TeacherProfileScreen() {
         </View>
 
         <View style={styles.profileRow}>
-          <View style={styles.avatarFrame}>
-            {user?.profileImage ? (
-              <Image source={{ uri: user.profileImage }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarPlaceholderText}>รูปถ่าย</Text>
-              </View>
-            )}
-          </View>
+          <TouchableOpacity
+            style={styles.avatarTouchable}
+            onPress={() => setEditImageModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.avatarFrame}>
+              {user?.profileImage ? (
+                <Image source={{ uri: user.profileImage }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={{ fontSize: 24 }}>👤</Text>
+                  <Text style={styles.avatarPlaceholderText}>เพิ่มรูปถ่าย</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.cameraBadge}>
+              <Text style={styles.cameraBadgeIcon}>📷</Text>
+            </View>
+          </TouchableOpacity>
+
           <View style={styles.mainInfo}>
             <Text style={styles.name}>{user?.name || 'ดร. โรเบิร์ต แวนซ์'}</Text>
             <Text style={styles.roleTag}>สถานะ: อาจารย์ประจำวิชา</Text>
             <Text style={styles.dept}>{user?.department || 'สาขาวิชาวิทยาการคอมพิวเตอร์'}</Text>
+
+            <TouchableOpacity
+              style={styles.changePhotoBtn}
+              onPress={() => setEditImageModalVisible(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.changePhotoBtnText}>📷 เปลี่ยนรูปโปรไฟล์</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -99,6 +120,16 @@ export default function TeacherProfileScreen() {
         variant="danger"
         onPress={handleLogout}
         style={{ marginTop: 14 }}
+      />
+
+      {/* Edit Profile Image Modal */}
+      <EditProfileImageModal
+        visible={editImageModalVisible}
+        currentImage={user?.profileImage}
+        onImageUpdated={async (newUri) => {
+          await updateUserProfile({ profileImage: newUri || undefined });
+        }}
+        onClose={() => setEditImageModalVisible(false)}
       />
     </ScrollView>
   );
@@ -159,6 +190,9 @@ const styles = StyleSheet.create({
     gap: 14,
     alignItems: 'center',
   },
+  avatarTouchable: {
+    position: 'relative',
+  },
   avatarFrame: {
     width: 80,
     height: 95,
@@ -167,6 +201,27 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     overflow: 'hidden',
     backgroundColor: Colors.panelBackground,
+  },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: -6,
+    right: -6,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: Colors.inkDark,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: Colors.inkDark,
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  cameraBadgeIcon: {
+    fontSize: 12,
   },
   avatar: {
     width: '100%',
@@ -178,12 +233,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarPlaceholderText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: Colors.inkMuted,
+    marginTop: 2,
   },
   mainInfo: {
     flex: 1,
+  },
+  changePhotoBtn: {
+    marginTop: 8,
+    backgroundColor: Colors.panelBackground,
+    borderWidth: 1.5,
+    borderColor: Colors.inkDark,
+    borderRadius: 3,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    alignSelf: 'flex-start',
+  },
+  changePhotoBtnText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.inkDark,
   },
   name: {
     fontSize: 18,
