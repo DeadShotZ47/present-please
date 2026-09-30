@@ -279,6 +279,19 @@ export default function AttendanceFlowScreen() {
         allowedRadius={session.allowedRadius}
         errorMessage={gpsError}
         onRetry={handleCheckLocation}
+        classroomCoords={{
+          latitude: session.latitude,
+          longitude: session.longitude,
+        }}
+        classroomName={session.room || 'ห้องเรียน'}
+        userCoords={
+          gpsCoords
+            ? {
+                latitude: gpsCoords.lat,
+                longitude: gpsCoords.lon,
+              }
+            : null
+        }
       />
 
       {/* Step 2: Photo Evidence */}

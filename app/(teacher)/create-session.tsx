@@ -18,6 +18,7 @@ import { ErrorMessage } from '../../components/ErrorMessage';
 import { LocationService } from '../../services/location';
 import { TimePickerModal } from '../../components/TimePickerModal';
 import { DatePickerModal } from '../../components/DatePickerModal';
+import { RealMapView } from '../../components/RealMapView';
 
 export default function CreateSessionScreen() {
   const router = useRouter();
@@ -273,6 +274,22 @@ export default function CreateSessionScreen() {
               placeholder="50"
             />
           </View>
+
+          {/* Map Preview for Teacher */}
+          {!isNaN(parseFloat(latitude)) && !isNaN(parseFloat(longitude)) && (
+            <View style={{ marginTop: 12 }}>
+              <Text style={[styles.label, { marginBottom: 6 }]}>แผนที่พิกัดห้องเรียนและรัศมี</Text>
+              <RealMapView
+                classroomCoords={{
+                  latitude: parseFloat(latitude),
+                  longitude: parseFloat(longitude),
+                }}
+                classroomName={room.trim() || 'ห้องเรียน'}
+                allowedRadius={parseFloat(allowedRadius) || 50}
+                height={180}
+              />
+            </View>
+          )}
         </View>
 
         <PrimaryButton
